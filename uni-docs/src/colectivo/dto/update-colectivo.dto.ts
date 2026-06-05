@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, IsArray, IsUUID, ValidateNested, Type } from "class-validator"
+import { IsInt, IsOptional, IsString, IsArray, IsUUID, ValidateNested } from "class-validator"
 
 class ProfessorAsignmentDto {
     @IsUUID()
@@ -19,7 +19,6 @@ export class UpdateColectivoDto {
 
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => ProfessorAsignmentDto)
     @IsOptional()
     profesores?: ProfessorAsignmentDto[]
 }

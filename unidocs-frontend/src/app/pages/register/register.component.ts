@@ -40,6 +40,20 @@ import { AuthService } from '../../services/auth.service';
           </div>
 
           <div class="form-group">
+            <label for="rol">Rol</label>
+            <select
+              id="rol"
+              [(ngModel)]="credentials.rol"
+              name="rol"
+              class="form-input"
+            >
+              <option *ngFor="let rol of rolOptions" [value]="rol.value">
+                {{ rol.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label for="password">Contraseña</label>
             <input
               id="password"
@@ -124,7 +138,8 @@ import { AuthService } from '../../services/auth.service';
         color: var(--text-primary);
       }
 
-      input {
+      input,
+      select {
         padding: 0.75rem;
         border: 1px solid var(--border-color);
         border-radius: 4px;
@@ -212,12 +227,20 @@ export class RegisterComponent {
   credentials = {
     nombre: '',
     apellidos: '',
-    password: ''
+    password: '',
+    rol: 'PROFESOR' as 'ADMIN' | 'PPA' | 'JEFE_COLECTIVO' | 'PROFESOR'
   };
 
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+
+  rolOptions = [
+    { value: 'PROFESOR', label: 'Profesor' },
+    { value: 'JEFE_COLECTIVO', label: 'Jefe de Colectivo' },
+    { value: 'PPA', label: 'PPA' },
+    { value: 'ADMIN', label: 'Administrador' }
+  ];
 
   onSubmit(): void {
     if (!this.credentials.nombre || !this.credentials.apellidos || !this.credentials.password) {
@@ -234,16 +257,22 @@ export class RegisterComponent {
       userName: this.credentials.nombre,
       apellido: this.credentials.apellidos,
       password: this.credentials.password,
-      rol: 'PROFESOR'
+      rol: this.credentials.rol
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Registro completado con éxito';
-        this.router.navigate(['/login']);
+        this.successMessage = 'Registro completado con éxito. Redirigiendo al login...';
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 1500);
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Error al registrar usuario';
+        if (error.error && typeof error.error === 'object') {
+          this.errorMessage = error.error.message || 'Error al registrar usuario';
+        } else {
+          this.errorMessage = error.error?.message || 'Error al registrar usuario';
+        }
       }
     });
   }

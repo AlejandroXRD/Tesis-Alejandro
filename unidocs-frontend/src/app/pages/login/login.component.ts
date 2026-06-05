@@ -207,14 +207,27 @@ export class LoginComponent {
 
     this.authService.login(this.credentials).subscribe({
       next: (response) => {
-        if (response.access_token) {
-          this.authService.setToken(response.access_token);
-          this.router.navigate(['/']);
+        // Save token from response
+        if (response.token) {
+          this.authService.setToken(response.token);
         }
+        // Save user data if available
+        if (response.user) {
+          this.authService.setUser(response.user);
+        }
+        // Redirect to colectivos
+        this.router.navigate(['/colectivos']);
       },
       error: (error) => {
         this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Error al iniciar sesión';
+        // Handle different error types
+        if (error.error && error.error.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.status === 401 || error.status === 400) {
+          this.errorMessage = 'Usuario o contraseña incorrectos';
+        } else {
+          this.errorMessage = 'Error al iniciar sesión. Intenta nuevamente.';
+        }
       }
     });
   }
@@ -223,3 +236,4 @@ export class LoginComponent {
     this.router.navigate(['/home']);
   }
 }
+

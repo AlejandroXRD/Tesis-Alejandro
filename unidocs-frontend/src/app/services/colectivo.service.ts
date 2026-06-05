@@ -2,12 +2,20 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
 
+export interface Profesor {
+  userId: string;
+  userName: string;
+  apellido: string;
+  asignatura: string;
+}
+
 export interface Colectivo {
   colectivoId: string;
   nombreColectivo: string;
   year: number;
   modalidad: 'DIURNO' | 'ENCUENTRO';
   createdAt: string;
+  profesores?: Profesor[];
 }
 
 export interface CreateColectivoRequest {

@@ -1,4 +1,4 @@
-import { IsArray, IsUUID, IsString, ValidateNested, Type } from "class-validator"
+import { IsArray, IsUUID, IsString, ValidateNested } from "class-validator"
 
 class ColectivoAsignmentDto {
     @IsUUID()
@@ -11,6 +11,5 @@ class ColectivoAsignmentDto {
 export class AssignColectivosDto {
     @IsArray()
     @ValidateNested({ each: true })
-    @Type(() => ColectivoAsignmentDto)
     colectivos: ColectivoAsignmentDto[]
 }

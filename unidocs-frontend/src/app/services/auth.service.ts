@@ -15,8 +15,8 @@ export interface RegisterRequest {
 }
 
 export interface AuthResponse {
-  access_token?: string;
   user?: any;
+  token?: string;
 }
 
 @Injectable({
@@ -27,11 +27,11 @@ export class AuthService {
   constructor(private apiService: ApiService) { }
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.apiService.post<AuthResponse>('/auth/login', credentials);
+    return this.apiService.post<AuthResponse>('auth/login', credentials);
   }
 
   register(data: RegisterRequest): Observable<AuthResponse> {
-    return this.apiService.post<AuthResponse>('/auth/register', data);
+    return this.apiService.post<AuthResponse>('auth/register', data);
   }
 
   logout(): void {
@@ -45,6 +45,15 @@ export class AuthService {
 
   setToken(token: string): void {
     localStorage.setItem('access_token', token);
+  }
+
+  setUser(user: any): void {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
+  getUser(): any {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
   }
 
   isLoggedIn(): boolean {
