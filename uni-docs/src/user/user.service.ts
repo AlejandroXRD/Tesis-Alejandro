@@ -48,7 +48,7 @@ export class UserService {
   // ✅ AGREGADO: método login() con verificación
   async login(userName: string, password: string) {
     // Buscar usuario por userName
-    const user = await this.prisma.user.findFirst({
+    const user : any = await this.prisma.user.findFirst({
       where: { userName }
     });
 

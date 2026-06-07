@@ -9,7 +9,7 @@ export class ColectivoController {
   constructor(private readonly colectivoService: ColectivoService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   create(@Body() createColectivoDto: CreateColectivoDto) {
     return this.colectivoService.create(createColectivoDto);
   }

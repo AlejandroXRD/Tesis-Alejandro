@@ -50,7 +50,7 @@ return { user, token };
 }
 
 async login(loginDto: LoginDto) {
-  const existUser = await this.prisma.user.findFirst({
+  const existUser : any = await this.prisma.user.findFirst({
     where: { userName: loginDto.userName }
   });
 

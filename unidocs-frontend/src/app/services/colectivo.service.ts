@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 export interface Profesor {
   userId: string;
@@ -35,10 +36,12 @@ export interface UpdateColectivoRequest {
 })
 export class ColectivoService {
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private http : HttpClient) { }
+
+  private colectivoURL : string = 'http://localhost:3000/colectivo'
 
   getAllColectivos(): Observable<Colectivo[]> {
-    return this.apiService.get<Colectivo[]>('/colectivo');
+    return this.http.get<Colectivo[]>(this.colectivoURL);
   }
 
   getColectivoById(id: string): Observable<Colectivo> {
