@@ -15,7 +15,14 @@ export class AuthInterceptor implements HttpInterceptor {
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const token = this.authService.getToken();
 
-    if (token) {
+    // Evitar enviar Authorization a endpoints públicos de auth.
+    const url = request.url.toLowerCase();
+    const isAuthPublicEndpoint =
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/verify');
+
+    if (token && !isAuthPublicEndpoint) {
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`

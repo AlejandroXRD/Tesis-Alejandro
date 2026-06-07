@@ -40,4 +40,11 @@ export class UserController {
   findColectivos(@Param('id') id: string) {
     return this.userService.findColectivos(id);
   }
+
+  @Get('check-username/:userName')
+  async checkUserName(@Param('userName') userName: string) {
+  const user = await this.userService.findByUserName(userName);
+  return { available: !user };
+  }
+
 }

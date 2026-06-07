@@ -208,3 +208,33 @@ select {
 
 .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
 .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+/* ===== FIX: Centrado de formularios en register-card ===== */
+.register-card input,
+.register-card select,
+.register-card textarea {
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.register-card input::placeholder,
+.register-card textarea::placeholder {
+  text-align: center !important;
+  opacity: 1 !important;
+}
+
+.register-card select {
+  text-align-last: center !important;
+}
+
+.register-card label,
+.register-card small,
+.register-card p,
+.register-card h1,
+.register-card h2,
+.register-card h3,
+.register-card h4,
+.register-card div {
+  text-align: center !important;
+}

@@ -1,20 +1,23 @@
-import { IsString, IsNotEmpty, IsEnum } from "class-validator"
-import { Rol } from "@prisma/client"
+// src/user/dto/create-user.dto.ts
+import { IsString, IsNotEmpty, MinLength, IsOptional, IsEnum, MaxLength } from 'class-validator';
+import { Rol } from '@prisma/client';
 
 export class CreateUserDto {
-    @IsString()
-    @IsNotEmpty()
-    userName: string
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  userName: string;
 
-    @IsString()
-    @IsNotEmpty()
-    password: string
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(50)
+  apellido: string;
 
-    @IsEnum(Rol)
-    @IsNotEmpty()
-    rol: Rol
+  @IsString()
+  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  password: string;
 
-    @IsString()
-    @IsNotEmpty()
-    apellido: string
+  @IsOptional()
+  @IsEnum(Rol, { message: 'El rol debe ser ADMIN, USER o PROFESOR' })
+  rol?: Rol;
 }

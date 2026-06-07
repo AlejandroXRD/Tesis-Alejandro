@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, NavigationExtras } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -50,6 +50,10 @@ import { AuthService } from '../../services/auth.service';
           <div *ngIf="errorMessage" class="error-message">
             {{ errorMessage }}
           </div>
+
+          <div *ngIf="debugMessage" class="debug-message">
+            {{ debugMessage }}
+          </div>
         </form>
 
         <div class="login-footer">
@@ -76,19 +80,17 @@ import { AuthService } from '../../services/auth.service';
       max-width: 400px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       text-align: center;
+    }
 
-      h2 {
-        margin-bottom: 0.5rem;
-        color: var(--text-primary);
-        text-align: center;
-      }
+    .login-card h2 {
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
 
-      .subtitle {
-        color: var(--text-secondary);
-        margin-bottom: 2rem;
-        font-size: 0.875rem;
-        text-align: center;
-      }
+    .login-card .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.875rem;
     }
 
     form {
@@ -101,27 +103,25 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      text-align: center;
+    }
 
-      label {
-        font-weight: 500;
-        color: var(--text-primary);
-        text-align: center;
-      }
+    .form-group label {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
 
-      input {
-        padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        text-align: center;
+    .form-group input {
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
 
-        &:focus {
-          border-color: var(--primary-color);
-          box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
-        }
-      }
+    .form-group input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+      outline: none;
     }
 
     .btn-submit,
@@ -130,41 +130,49 @@ import { AuthService } from '../../services/auth.service';
       border-radius: 4px;
       font-weight: 600;
       transition: all 0.3s ease;
-      text-align: center;
       cursor: pointer;
     }
 
     .btn-submit {
       background-color: var(--primary-color);
       color: white;
+      border: none;
+    }
 
-      &:hover:not(:disabled) {
-        background-color: var(--primary-dark);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
-      }
+    .btn-submit:hover:not(:disabled) {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
 
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .btn-home {
       background-color: transparent;
       color: var(--primary-color);
       border: 2px solid var(--primary-color);
+    }
 
-      &:hover {
-        background-color: var(--primary-color);
-        color: white;
-      }
+    .btn-home:hover {
+      background-color: var(--primary-color);
+      color: white;
     }
 
     .error-message {
       color: var(--error-color);
       font-size: 0.875rem;
-      text-align: center;
+    }
+
+    .debug-message {
+      color: var(--info-color);
+      font-size: 0.75rem;
+      font-family: monospace;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 0.5rem;
+      border-radius: 4px;
     }
 
     .login-footer {
@@ -172,15 +180,11 @@ import { AuthService } from '../../services/auth.service';
       margin-top: 1rem;
       font-size: 0.875rem;
       color: var(--text-secondary);
+    }
 
-      a {
-        color: var(--primary-color);
-        font-weight: 600;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
+    .login-footer a {
+      color: var(--primary-color);
+      font-weight: 600;
     }
   `]
 })
@@ -195,45 +199,58 @@ export class LoginComponent {
 
   isLoading = false;
   errorMessage = '';
+  debugMessage = '';
 
   onSubmit(): void {
-    if (!this.credentials.userName || !this.credentials.password) {
-      this.errorMessage = 'Por favor completa todos los campos';
-      return;
-    }
-
-    this.isLoading = true;
-    this.errorMessage = '';
-
-    this.authService.login(this.credentials).subscribe({
-      next: (response) => {
-        // Save token from response
-        if (response.token) {
-          this.authService.setToken(response.token);
-        }
-        // Save user data if available
-        if (response.user) {
-          this.authService.setUser(response.user);
-        }
-        // Redirect to colectivos
-        this.router.navigate(['/colectivos']);
-      },
-      error: (error) => {
-        this.isLoading = false;
-        // Handle different error types
-        if (error.error && error.error.message) {
-          this.errorMessage = error.error.message;
-        } else if (error.status === 401 || error.status === 400) {
-          this.errorMessage = 'Usuario o contraseña incorrectos';
-        } else {
-          this.errorMessage = 'Error al iniciar sesión. Intenta nuevamente.';
-        }
-      }
-    });
+  if (!this.credentials.userName || !this.credentials.password) {
+    this.errorMessage = 'Por favor completa todos los campos';
+    return;
   }
+
+  this.isLoading = true;
+  this.errorMessage = '';
+
+  console.log('📤 Enviando login:', this.credentials);
+
+  this.authService.login(this.credentials).subscribe({
+    next: (response) => {
+      console.log('✅ Login response completa:', response);
+      console.log('🔑 Token:', response?.token);
+      console.log('👤 User:', response?.user);
+      
+      // ✅ SIEMPRE intentar guardar, no solo si existe
+      if (response?.token) {
+        this.authService.setToken(response.token);
+      } else {
+        console.warn('⚠️ No vino token en la respuesta del backend');
+      }
+      
+      if (response?.user) {
+        this.authService.setUser(response.user);
+      }
+
+      // Verificar que se guardó
+      const tokenSaved = this.authService.getToken();
+      console.log('🔍 Token guardado en localStorage:', tokenSaved);
+
+      this.isLoading = false;
+
+      // ✅ SIEMPRE navega a /home (ruta segura sin guard)
+      // Si quieres ir a /colectivos, lo cambias después
+      console.log('🚀 Navegando a /home...');
+      this.router.navigate(['/home']);
+    },
+    error: (error) => {
+      console.error('❌ Error en login:', error);
+      this.isLoading = false;
+      this.errorMessage = error.status === 401
+        ? 'Usuario o contraseña incorrectos'
+        : 'Error al iniciar sesión';
+    }
+  });
+}
 
   goHome(): void {
     this.router.navigate(['/home']);
   }
 }
-

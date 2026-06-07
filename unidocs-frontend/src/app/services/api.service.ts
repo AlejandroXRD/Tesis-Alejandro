@@ -7,42 +7,31 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl.replace(/\/$/, '');
 
   constructor(private http: HttpClient) { }
 
-  /**
-   * GET request
-   */
+  private normalize(endpoint: string): string {
+    return `${this.apiUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  }
+
   get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`${this.apiUrl}${endpoint}`);
+    return this.http.get<T>(this.normalize(endpoint));
   }
 
-  /**
-   * POST request
-   */
   post<T>(endpoint: string, body: any): Observable<T> {
-    return this.http.post<T>(`${this.apiUrl}${endpoint}`, body);
+    return this.http.post<T>(this.normalize(endpoint), body);
   }
 
-  /**
-   * PUT request
-   */
   put<T>(endpoint: string, body: any): Observable<T> {
-    return this.http.put<T>(`${this.apiUrl}${endpoint}`, body);
+    return this.http.put<T>(this.normalize(endpoint), body);
   }
 
-  /**
-   * PATCH request
-   */
   patch<T>(endpoint: string, body: any): Observable<T> {
-    return this.http.patch<T>(`${this.apiUrl}${endpoint}`, body);
+    return this.http.patch<T>(this.normalize(endpoint), body);
   }
 
-  /**
-   * DELETE request
-   */
   delete<T = void>(endpoint: string): Observable<T> {
-    return this.http.delete<T>(`${this.apiUrl}${endpoint}`);
+    return this.http.delete<T>(this.normalize(endpoint));
   }
 }

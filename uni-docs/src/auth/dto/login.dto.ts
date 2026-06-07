@@ -1,11 +1,13 @@
-import { IsNotEmpty, IsString } from "class-validator"
+// src/auth/dto/login.dto.ts
+import { IsString, IsNotEmpty } from 'class-validator';
+import { Rol } from '@prisma/client';
 
 export class LoginDto {
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   userName: string;
 
-  @IsNotEmpty()
   @IsString()
+  @IsNotEmpty()
   password: string;
 }
