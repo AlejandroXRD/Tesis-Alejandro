@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -38,8 +40,14 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="cta-section">
-          <a href="/login" class="btn-primary">Iniciar Sesión</a>
-          <a href="/register" class="btn-secondary">Registrarse</a>
+          <ng-container *ngIf="!isAuthenticated(); else loggedIn">
+            <a href="/login" class="btn-primary">Iniciar Sesión</a>
+            <a href="/register" class="btn-secondary">Registrarse</a>
+          </ng-container>
+
+          <ng-template #loggedIn>
+            <!-- Oculto cuando está autenticado -->
+          </ng-template>
         </div>
       </div>
     </div>
@@ -176,4 +184,15 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class HomeComponent { }
+export class HomeComponent {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  isAuthenticated(): boolean {
+    return this.authService.isAuthenticated();
+  }
+
+  goToColectivos(): void {
+    this.router.navigate(['/colectivos']);
+  }
+}

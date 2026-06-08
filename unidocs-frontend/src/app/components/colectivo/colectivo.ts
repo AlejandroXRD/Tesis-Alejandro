@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 type Curso = 'DIURNO' | 'POR_ENCUENTROS';
 
@@ -143,27 +144,41 @@ type ModoModal = 'crear' | 'editar';
             </div>
             <div class="panel-body">
               <div class="colective-list" *ngIf="colectivosFiltrados.length > 0; else emptyState">
-                <button
-                  class="colective-card"
+                <div
+                  class="colective-row"
                   *ngFor="let colectivo of colectivosFiltrados"
-                  [class.colective-card--active]="colectivoActivo?.id === colectivo.id"
-                  (click)="seleccionarColectivo(colectivo.id)"
+                  [class.colective-row--active]="colectivoActivo?.id === colectivo.id"
                 >
-                  <div class="card-year-stripe">{{ colectivo.anio }}°</div>
-                  <div class="card-content">
-                    <strong class="card-nombre">{{ colectivo.nombre }}</strong>
-                    <p class="card-desc">Curso escolar: {{ colectivo.anioEscolar }}</p>
-                    <div class="card-meta">
-                      <span class="meta-chip">
-                        <span class="chip-dot chip-dot--success"></span>
-                        {{ colectivo.profesores }} profesores
-                      </span>
-                      <span class="meta-chip meta-chip--primary">
-                        {{ colectivo.curso === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}
-                      </span>
+                  <button
+                    class="colective-card"
+                    (click)="seleccionarColectivo(colectivo.id)"
+                  >
+                    <div class="card-year-stripe">{{ colectivo.anio }}°</div>
+                    <div class="card-content">
+                      <strong class="card-nombre">{{ colectivo.nombre }}</strong>
+                      <p class="card-desc">Curso escolar: {{ colectivo.anioEscolar }}</p>
+                      <div class="card-meta">
+                        <span class="meta-chip">
+                          <span class="chip-dot chip-dot--success"></span>
+                          {{ colectivo.profesores }} profesores
+                        </span>
+                        <span class="meta-chip meta-chip--primary">
+                          {{ colectivo.curso === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+
+                  <button
+                    class="btn btn--ghost detalles-btn"
+                    type="button"
+                    (click)="accederADetalles(colectivo.id); $event.stopPropagation()"
+                    [disabled]="!colectivo?.id"
+                    aria-label="Acceder al colectivo {{ colectivo.nombre }}"
+                  >
+                    Detalles
+                  </button>
+                </div>
               </div>
 
               <ng-template #emptyState>
@@ -646,6 +661,23 @@ type ModoModal = 'crear' | 'editar';
 
     .colective-card--active .card-year-stripe { background-color: var(--primary-color); }
 
+    .colective-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    .colective-row .colective-card {
+      flex: 1;
+    }
+
+    .detalles-btn {
+      align-self: center;
+      height: fit-content;
+      padding: 0.5rem 0.9rem;
+      white-space: nowrap;
+    }
+
     .card-content { padding: 0.85rem 1rem; flex: 1; min-width: 0; }
 
     .card-nombre { display: block; font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.3rem; }
@@ -954,6 +986,8 @@ export class ColectivoComponent {
   // Opciones disponibles para el año académico
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
 
+  constructor(private readonly router: Router) {}
+
   cursoSeleccionado: Curso | null = null;
   colectivoActivo: ColectivoItem | null = null;
   mensaje = '';
@@ -1134,5 +1168,10 @@ export class ColectivoComponent {
     this.colectivos = this.colectivos.filter(c => c.id !== idEliminado);
     this.colectivoActivo = this.colectivosFiltrados[0] ?? null;
     this.mensaje = `Colectivo "${nombre}" eliminado correctamente.`;
+  }
+
+  accederADetalles(colectivoId: number): void {
+    if (!colectivoId) return;
+    this.router.navigate(['/colectivos/detalles', colectivoId]);
   }
 }

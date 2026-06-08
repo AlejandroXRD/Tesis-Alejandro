@@ -13,6 +13,5 @@ export const routes: Routes = [
   { path: 'register', component: RegisterComponent, canActivate: [PublicGuard] },
   { path: 'colectivos', component: ColectivoComponent, canActivate: [AuthGuard] },
   { path: 'tareas', component: TareaComponent, canActivate: [AuthGuard] },
-  { path: 'tareas/crear', component: TareaComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: 'home' }
 ];
