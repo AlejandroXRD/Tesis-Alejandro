@@ -1,0 +1,126 @@
+<div class="register-container">
+      <div class="register-card">
+        <h2>Registrarse</h2>
+        <p class="subtitle">Sistema de Gestión Documental UniDocs</p>
+
+        <form (ngSubmit)="onSubmit()">
+          <!-- Nombre de usuario con validación en tiempo real -->
+          <div class="form-group">
+            <label for="nombre">Nombre de usuario</label>
+            <div class="input-wrapper">
+              <input
+                id="nombre"
+                type="text"
+                [(ngModel)]="credentials.nombre"
+                name="nombre"
+                placeholder="Ingresa tu nombre de usuario"
+                required
+                (ngModelChange)="onUserNameChange()"
+                [class.input-error]="userNameStatus() === 'taken'"
+                [class.input-success]="userNameStatus() === 'available'"
+                [class.input-checking]="userNameStatus() === 'checking'"
+              />
+              <!-- ❌ ELIMINADA la palomita ✓ -->
+              <!-- ✅ Solo queda el spinner de carga -->
+              <span class="input-status" *ngIf="userNameStatus() as status">
+                <span *ngIf="status === 'checking'" class="spinner-small"></span>
+              </span>
+            </div>
+            <small 
+              *ngIf="userNameStatus() === 'taken'" 
+              class="field-error"
+            >
+              Este nombre de usuario ya está en uso
+            </small>
+            <small 
+              *ngIf="userNameStatus() === 'available'" 
+              class="field-success"
+            >
+              Nombre de usuario disponible
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="apellidos">Apellido</label>
+            <input
+              id="apellidos"
+              type="text"
+              [(ngModel)]="credentials.apellidos"
+              name="apellidos"
+              placeholder="Ingresa tu apellido"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="rol">Rol</label>
+            <div class="select-wrapper">
+              <select
+                id="rol"
+                [(ngModel)]="credentials.rol"
+                name="rol"
+                class="form-input"
+                [class.input-error]="showError() && !credentials.rol"
+                [class.has-value]="credentials.rol"
+              >
+                <option value="" disabled hidden>Seleccione su rol</option>
+                <option *ngFor="let rol of rolOptions" [value]="rol.value">
+                  {{ rol.label }}
+                </option>
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+            <small 
+              *ngIf="showError() && !credentials.rol" 
+              class="field-error"
+            >
+              Por favor seleccione un rol
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              [(ngModel)]="credentials.password"
+              name="password"
+              placeholder="Mínimo 6 caracteres"
+              required
+              minlength="6"
+            />
+            <small 
+              *ngIf="credentials.password && credentials.password.length < 6" 
+              class="field-error"
+            >
+              La contraseña debe tener al menos 6 caracteres
+            </small>
+          </div>
+
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="isLoading() || userNameStatus() === 'taken'"
+          >
+            <span *ngIf="isLoading()" class="spinner"></span>
+            {{ isLoading() ? 'Registrando...' : 'Crear cuenta' }}
+          </button>
+
+          <button type="button" class="btn-home" (click)="goHome()">
+            Volver al Home
+          </button>
+
+          <div *ngIf="errorMessage()" class="error-message">
+            {{ errorMessage() }}
+          </div>
+
+          <div *ngIf="successMessage()" class="success-message">
+            {{ successMessage() }}
+          </div>
+        </form>
+
+        <div class="register-footer">
+          <p>¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
+        </div>
+      </div>
+    </div>
