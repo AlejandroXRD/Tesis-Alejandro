@@ -14,10 +14,6 @@ export class CreateTareaDto {
     @IsNotEmpty()
     fechaLimite: string
 
-    @IsEnum(estadoTarea)
-    @IsNotEmpty()
-    estado: estadoTarea
-
     @IsUUID()
     @IsNotEmpty()
     profesorId: string

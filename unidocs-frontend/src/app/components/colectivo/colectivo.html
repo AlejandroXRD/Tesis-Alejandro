@@ -1,0 +1,228 @@
+
+
+<div class="colectivo-page container">
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Gestión de Colectivos
+      </span>
+      <h1 *ngIf="!cursoSeleccionado">Seleccione un Curso</h1>
+      <h1 *ngIf="cursoSeleccionado">
+        Colectivos
+        <span class="h1-accent">{{ cursoSeleccionado === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}</span>
+      </h1>
+      <p class="subtitle" *ngIf="!cursoSeleccionado">
+        Elige el tipo de curso para explorar y gestionar los colectivos disponibles.
+      </p>
+      <p class="subtitle" *ngIf="cursoSeleccionado">
+        Administra, edita o elimina colectivos del curso seleccionado.
+      </p>
+    </div>
+    <div class="header-deco" aria-hidden="true"></div>
+  </header>
+
+  <!-- Selección de curso -->
+  <div class="selection-grid" *ngIf="!cursoSeleccionado">
+    <button class="course-card course-diurno" (click)="seleccionarCurso('DIURNO')">
+      <div class="course-icon course-icon--diurno">...</div>
+      <div class="course-body">
+        <span class="course-tag">Curso</span>
+        <strong>Diurno</strong>
+        <p>Ver colectivos del turno diurno</p>
+      </div>
+    </button>
+
+    <button class="course-card course-encuentros" (click)="seleccionarCurso('ENCUENTRO')">
+      <div class="course-icon course-icon--encuentros">...</div>
+      <div class="course-body">
+        <span class="course-tag">Curso</span>
+        <strong>Por Encuentros</strong>
+        <p>Ver colectivos del curso por encuentros</p>
+      </div>
+    </button>
+  </div>
+
+  <!-- Workspace -->
+  <div class="colectivo-workspace" *ngIf="cursoSeleccionado">
+
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="btn btn--primary" (click)="abrirModal()">Crear Colectivo</button>
+        <button class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo">Editar</button>
+        <button class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo">Eliminar</button>
+      </div>
+      <button class="btn btn--ghost" (click)="volverASeleccion()">Cambiar curso</button>
+    </div>
+
+    <div class="status-message status-message--success" *ngIf="mensaje">{{ mensaje }}</div>
+    <div class="status-message status-message--error" *ngIf="error">{{ error }}</div>
+
+    <div *ngIf="cargando" class="loading-state">
+      <p>Cargando colectivos...</p>
+    </div>
+
+    <div class="content-grid" *ngIf="!cargando">
+
+      <!-- Lista -->
+      <section class="panel list-panel">
+        <div class="panel-header">
+          <h2>Colectivos</h2>
+          <span class="count-badge">{{ colectivosFiltrados.length }}</span>
+        </div>
+        <div class="panel-body">
+          <div class="colective-list" *ngIf="colectivosFiltrados.length > 0; else emptyState">
+            <div class="colective-card-wrapper" *ngFor="let colectivo of colectivosFiltrados">
+              <button
+                class="colective-card"
+                [class.colective-card--active]="colectivoActivo?.colectivoId === colectivo.colectivoId"
+                (click)="seleccionarColectivo(colectivo.colectivoId)"
+              >
+                <div class="card-year-stripe">{{ colectivo.year }}°</div>
+                <div class="card-content">
+                  <strong class="card-nombre">{{ colectivo.nombreColectivo }}</strong>
+                  <p class="card-desc">Creado: {{ colectivo.createdAt | date:'short' }}</p>
+                  <div class="card-meta">
+                    <span class="meta-chip">{{ colectivo.profesores?.length ?? 0 }} profesores</span>
+                    <span class="meta-chip meta-chip--primary">{{ colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
+                  </div>
+                </div>
+              </button>
+
+              <!-- Botón rápido Asignar Profesor (evita seleccionar la tarjeta al hacer click) -->
+              <div class="card-actions">
+                <button
+                  class="btn btn--small btn--secondary"
+                  (click)="seleccionarColectivo(colectivo.colectivoId); abrirModalAsignarProfesores(); $event.stopPropagation()"
+                >
+                  Asignar Profesor
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #emptyState>
+            <div class="empty-state">
+              <p>No hay colectivos para este curso.</p>
+              <button class="btn btn--primary" (click)="abrirModal()">Crear primero</button>
+            </div>
+          </ng-template>
+        </div>
+      </section>
+
+      <!-- Detalle -->
+      <aside class="panel detail-panel" *ngIf="colectivoActivo">
+        <div class="panel-header">
+          <h2>Detalle</h2>
+        </div>
+        <div class="panel-body">
+          <div class="detail-year-badge">{{ colectivoActivo.year }}° año académico</div>
+          <h3 class="detail-nombre">{{ colectivoActivo.nombreColectivo }}</h3>
+          <p class="detail-desc">ID: {{ colectivoActivo.colectivoId }}</p>
+          <div class="detail-divider"></div>
+          <dl class="detail-list">
+            <div class="detail-row"><dt>Modalidad</dt><dd>{{ colectivoActivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</dd></div>
+            <div class="detail-row"><dt>Año académico</dt><dd>{{ colectivoActivo.year }}°</dd></div>
+            <div class="detail-row"><dt>Profesores asignados</dt><dd>{{ colectivoActivo.profesores?.length ?? 0 }}</dd></div>
+            <div class="detail-row"><dt>Creado</dt><dd>{{ colectivoActivo.createdAt | date:'long' }}</dd></div>
+            <div class="detail-row" *ngIf="colectivoActivo.profesores && colectivoActivo.profesores.length > 0">
+              <dt>Docentes</dt>
+              <dd>
+                <ul>
+                  <li *ngFor="let prof of colectivoActivo.profesores">
+                    {{ prof.userName }} {{ prof.apellido }} — {{ prof.asignatura }}
+                  </li>
+                </ul>
+              </dd>
+            </div>
+          </dl>
+
+          <div class="detail-actions" style="margin-top:1rem;">
+            <button class="btn btn--secondary" (click)="abrirModalAsignarProfesores()">Asignar Profesor</button>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- MODAL CREAR / EDITAR COLECTIVO -->
+  <div class="modal-backdrop" *ngIf="modalAbierto" (click)="cerrarModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="modal-title">{{ modoModal === 'crear' ? 'Nuevo Colectivo' : 'Editar Colectivo' }}</h2>
+        <button class="modal-close" (click)="cerrarModal()">Cerrar</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="nombreColectivo">Nombre del colectivo</label>
+          <input id="nombreColectivo" type="text" class="form-input" [(ngModel)]="form.nombreColectivo" (ngModelChange)="limpiarError('nombreColectivo')" />
+          <span class="form-error" *ngIf="errores['nombreColectivo']">{{ errores['nombreColectivo'] }}</span>
+        </div>
+
+        <div class="form-group">
+          <label for="year">Año académico</label>
+          <select id="year" class="form-input" [(ngModel)]="form.year" (ngModelChange)="limpiarError('year')">
+            <option [ngValue]="null" disabled>Selecciona un año académico</option>
+            <option *ngFor="let anio of opcionesAnioAcademico" [ngValue]="anio">{{ anio }}° año</option>
+          </select>
+          <span class="form-error" *ngIf="errores['year']">{{ errores['year'] }}</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn--ghost" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn btn--primary" (click)="confirmarAccion()">
+          {{ modoModal === 'crear' ? 'Crear Colectivo' : 'Guardar Cambios' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL ASIGNAR PROFESORES -->
+  <div class="modal-backdrop" *ngIf="modalAsignarAbierto" (click)="cerrarModalAsignarProfesores()" role="dialog" aria-modal="true" aria-labelledby="modal-asignar-title">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 id="modal-asignar-title">Asignar Profesores</h2>
+        <button class="modal-close" (click)="cerrarModalAsignarProfesores()">Cerrar</button>
+      </div>
+
+      <div class="modal-body">
+        <p *ngIf="cargandoProfesores">Cargando profesores...</p>
+
+        <div *ngIf="!cargandoProfesores && profesoresDisponibles.length === 0">
+          <p>No hay profesores disponibles.</p>
+        </div>
+
+        <form *ngIf="!cargandoProfesores && profesoresDisponibles.length > 0">
+          <div class="prof-list">
+            <div class="prof-row" *ngFor="let item of profesoresDisponibles; let i = index">
+              <label class="prof-label">
+                <input type="checkbox" [(ngModel)]="profesoresDisponibles[i].seleccionado" name="profSel{{i}}" (change)="toggleProfesor(i)" />
+                {{ item.profesor.userName }} {{ item.profesor.apellido }}
+              </label>
+
+              <input
+                class="form-input"
+                placeholder="Asignatura"
+                [(ngModel)]="profesoresDisponibles[i].asignatura"
+                name="profAsig{{i}}"
+                [disabled]="!profesoresDisponibles[i].seleccionado"
+              />
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn--ghost" (click)="cerrarModalAsignarProfesores()">Cancelar</button>
+        <button class="btn btn--primary" (click)="guardarProfesoresAsignados()">Guardar asignaciones</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+```
