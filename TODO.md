@@ -1,0 +1,7 @@
+- [ ] Update: unidocs-frontend/src/app/pages/login/login.component.ts
+  - [ ] Limpiar errorMessage antes de enviar
+  - [ ] Manejar errores robustamente (401, status ausente, mensajes del backend)
+- [ ] Update: unidocs-frontend/src/app/services/auth.service.ts
+  - [ ] Remover hardcode de apiUrl usando environment.apiUrl
+- [x] Test manual
+  - [ ] Intentar login con credenciales incorrectas y verificar que muestra el error inmediatamente

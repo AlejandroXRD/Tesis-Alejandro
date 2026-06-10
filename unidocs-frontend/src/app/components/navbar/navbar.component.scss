@@ -288,6 +288,77 @@ $border-dark: #374151;
     }
   }
 
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+
+    /* Ovalo semi-transparente gris */
+    background: rgba(107, 114, 128, 0.16);
+    border: 1px solid rgba(107, 114, 128, 0.25);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.03);
+
+    white-space: nowrap;
+    max-width: 420px;
+  }
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $primary-color, $primary-dark);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+  }
+
+  .user-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
+    line-height: 1.1;
+  }
+
+  .user-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .user-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    /* Usar la misma fuente que el resto de la pagina */
+    font-family: inherit;
+  }
+
+  .user-role-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .user-role-pill {
+    background: rgba(30, 64, 175, 0.12);
+    color: $primary-color;
+    font-weight: 900;
+    font-size: 0.78rem;
+    padding: 0.18rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid rgba(30, 64, 175, 0.25);
+  }
+
   .navbar-actions {
     display: flex;
     align-items: center;
