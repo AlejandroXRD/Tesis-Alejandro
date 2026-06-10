@@ -18,6 +18,22 @@ export class ColectivoService {
     return this.prisma.colectivo.findMany();
   }
 
+  findAllDiurno(){
+    return this.prisma.colectivo.findMany({
+      where: { modalidad : 'DIURNO' },
+      include: { profesores : true },
+      orderBy: { createdAt : 'asc'}
+    })
+  }
+
+  findAllEncuentro(){
+    return this.prisma.colectivo.findMany({
+      where: { modalidad : 'ENCUENTRO'},
+      include : { profesores : true },
+      orderBy : { createdAt : 'asc'}
+    })
+  }
+
   findOne(id: string) {
     return this.prisma.colectivo.findUnique({
       where : { colectivoId : id },

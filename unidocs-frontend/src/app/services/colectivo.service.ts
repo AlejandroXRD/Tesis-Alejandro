@@ -10,6 +10,11 @@ export interface Profesor {
   asignatura: string;
 }
 
+export interface ProfessorAsignmentDto {
+  profesorId: string;
+  asignatura: string;
+}
+
 export interface Colectivo {
   colectivoId: string;
   nombreColectivo: string;
@@ -28,7 +33,7 @@ export interface CreateColectivoRequest {
 export interface UpdateColectivoRequest {
   nombreColectivo?: string;
   year?: number;
-  modalidad?: 'DIURNO' | 'ENCUENTRO';
+  profesores?: ProfessorAsignmentDto[];
 }
 
 @Injectable({
@@ -39,9 +44,22 @@ export class ColectivoService {
   constructor(private apiService: ApiService, private http : HttpClient) { }
 
   private colectivoURL : string = 'http://localhost:3000/colectivo'
+  private profesorURL : string = 'http://localhost:3000/user'
 
   getAllColectivos(): Observable<Colectivo[]> {
     return this.http.get<Colectivo[]>(this.colectivoURL);
+  }
+
+  getAllDiurno(): Observable<Colectivo[]> {
+    return this.http.get<Colectivo[]>(`${this.colectivoURL}/diurno`);
+  }
+
+  getAllEncuentro(): Observable<Colectivo[]> {
+    return this.http.get<Colectivo[]>(`${this.colectivoURL}/encuentro`);
+  }
+
+  getAllProfesores(): Observable<Profesor[]> {
+    return this.http.get<Profesor[]>(`${this.profesorURL}/profesores`);
   }
 
   getColectivoById(id: string): Observable<Colectivo> {

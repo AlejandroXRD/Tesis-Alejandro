@@ -19,6 +19,16 @@ export class ColectivoController {
     return this.colectivoService.findAll();
   }
 
+  @Get('diurno')
+  findAllDiurno(){
+    return this.colectivoService.findAllDiurno();
+  }
+
+  @Get('encuentro')
+  findAllEncuentro(){
+    return this.colectivoService.findAllEncuentro();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.colectivoService.findOne(id);

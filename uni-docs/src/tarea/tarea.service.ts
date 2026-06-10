@@ -19,7 +19,7 @@ export class TareaService {
         nombreTarea: createTareaDto.nombreTarea,
         descripcion: createTareaDto.descripcion,
         fechaLimite: new Date(createTareaDto.fechaLimite),
-        estado: createTareaDto.estado,
+        estado: 'PENDIENTE',
         userId: createTareaDto.profesorId
       },
       include: { profesor: true }
