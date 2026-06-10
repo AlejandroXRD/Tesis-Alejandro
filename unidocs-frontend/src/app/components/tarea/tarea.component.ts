@@ -3,14 +3,15 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TareaService, CreateTareaRequest } from '../../services/tarea.service';
-import { UserService, User } from '../../services/user.service';
+import { User, UserService } from '../../services/user.service';
+import { Colectivo, ColectivoService } from '../../services/colectivo.service';
 
 interface TareaForm {
   nombreTarea: string;
   descripcion: string;
   fechaLimite: string;
-  estado: 'PENDIENTE' | 'EN_REVIsION' | 'RECHAZADA' | 'COMPLETADA';
   profesorId: string;
+  colectivoId: string;
 }
 
 @Component({
@@ -76,6 +77,28 @@ interface TareaForm {
                 <span class="form-hint">Detalle sobre qué debe hacer el profesor</span>
               </div>
 
+              <!-- Colectivo -->
+              <div class="form-group">
+                <label for="colectivoId" class="form-label">
+                  Colectivo
+                  <span class="required">*</span>
+                </label>
+                <select
+                  id="colectivoId"
+                  [(ngModel)]="form.colectivoId"
+                  name="colectivoId"
+                  class="form-input form-select"
+                  required
+                  (ngModelChange)="onColectivoChange($event)"
+                >
+                  <option value="">Selecciona un colectivo</option>
+                  <option *ngFor="let c of colectivos" [value]="c.colectivoId">
+                    {{ c.nombreColectivo }} ({{ c.year }})
+                  </option>
+                </select>
+                <span class="form-hint">Selecciona el colectivo para cargar sus profesores</span>
+              </div>
+
               <!-- Profesor -->
               <div class="form-group">
                 <label for="profesorId" class="form-label">
@@ -112,26 +135,6 @@ interface TareaForm {
                   required
                 />
                 <span class="form-hint">Fecha y hora límite para completar la tarea</span>
-              </div>
-
-              <!-- Estado -->
-              <div class="form-group">
-                <label for="estado" class="form-label">
-                  Estado inicial
-                  <span class="required">*</span>
-                </label>
-                <select
-                  id="estado"
-                  [(ngModel)]="form.estado"
-                  name="estado"
-                  class="form-input form-select"
-                >
-                  <option value="PENDIENTE">Pendiente</option>
-                  <option value="EN_REVIsION">En Revisión</option>
-                  <option value="RECHAZADA">Rechazada</option>
-                  <option value="COMPLETADA">Completada</option>
-                </select>
-                <span class="form-hint">Estado inicial de la tarea</span>
               </div>
 
               <!-- Botones -->
@@ -478,41 +481,61 @@ interface TareaForm {
 })
 export class TareaComponent implements OnInit {
   private tareaService = inject(TareaService);
-  private userService = inject(UserService);
   private router = inject(Router);
+  private colectivoService = inject(ColectivoService);
 
   form: TareaForm = {
     nombreTarea: '',
     descripcion: '',
     fechaLimite: '',
-    estado: 'PENDIENTE',
-    profesorId: ''
+    profesorId: '',
+    colectivoId: ''
   };
 
+  colectivos: Colectivo[] = [];
   profesores: User[] = [];
+
   isLoading = false;
-  loadingProfesores = true;
+  loadingProfesores = false;
   errorMessage = '';
   successMessage = '';
 
   ngOnInit(): void {
-    this.loadProfesores();
+    this.loadColectivos();
   }
 
-  loadProfesores(): void {
-    this.loadingProfesores = true;
-    this.userService.getAllUsers().subscribe({
-      next: (users) => {
-        // Filter only professors (optional: you can filter by rol if needed)
-        this.profesores = users;
-        this.loadingProfesores = false;
+  loadColectivos(): void {
+    this.errorMessage = '';
+    this.loadingProfesores = false;
+
+    this.colectivoService.getAllColectivos().subscribe({
+      next: (colectivos: Colectivo[]) => {
+        this.colectivos = colectivos;
+        this.profesores = [];
       },
-      error: (error) => {
-        console.error('Error loading professors:', error);
-        this.loadingProfesores = false;
-        this.errorMessage = 'Error al cargar los profesores';
-      }
+      error: (error: unknown) => {
+        console.error('Error loading colectivos:', error);
+        this.errorMessage = 'Error al cargar los colectivos';
+      },
     });
+  }
+
+  onColectivoChange(colectivoId: string): void {
+    this.form.profesorId = '';
+    this.profesores = [];
+
+    if (!colectivoId) return;
+
+    const selected = this.colectivos.find((c) => c.colectivoId === colectivoId);
+    const profesores = selected?.profesores ?? [];
+
+    this.profesores = profesores.map((p) => ({
+      userId: p.userId,
+      userName: p.userName,
+      apellido: p.apellido,
+      rol: 'PROFESOR',
+      createdAt: '',
+    }));
   }
 
   isFormValid(): boolean {
@@ -520,6 +543,7 @@ export class TareaComponent implements OnInit {
       this.form.nombreTarea.trim().length > 0 &&
       this.form.descripcion.trim().length > 0 &&
       this.form.fechaLimite.length > 0 &&
+      this.form.colectivoId.length > 0 &&
       this.form.profesorId.length > 0
     );
   }
@@ -538,7 +562,7 @@ export class TareaComponent implements OnInit {
       nombreTarea: this.form.nombreTarea,
       descripcion: this.form.descripcion,
       fechaLimite: new Date(this.form.fechaLimite).toISOString(),
-      estado: this.form.estado,
+      estado: 'PENDIENTE',
       profesorId: this.form.profesorId
     };
 
@@ -574,9 +598,10 @@ export class TareaComponent implements OnInit {
       nombreTarea: '',
       descripcion: '',
       fechaLimite: '',
-      estado: 'PENDIENTE',
+      colectivoId: '',
       profesorId: ''
     };
+    this.profesores = [];
     this.errorMessage = '';
     this.successMessage = '';
   }

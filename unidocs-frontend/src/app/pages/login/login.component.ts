@@ -1,7 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, NavigationExtras } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -20,6 +20,7 @@ import { AuthService } from '../../services/auth.service';
             <input
               id="userName"
               type="text"
+              autocomplete="off"
               [(ngModel)]="credentials.userName"
               name="userName"
               placeholder="Ingresa tu usuario"
@@ -32,6 +33,7 @@ import { AuthService } from '../../services/auth.service';
             <input
               id="password"
               type="password"
+              autocomplete="off"
               [(ngModel)]="credentials.password"
               name="password"
               placeholder="Ingresa tu contraseña"
@@ -188,7 +190,7 @@ import { AuthService } from '../../services/auth.service';
     }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -200,6 +202,14 @@ export class LoginComponent {
   isLoading = false;
   errorMessage = '';
   debugMessage = '';
+
+  ngOnInit(): void {
+    // Evita que el componente reaproveche valores previos y limpia el formulario al entrar
+    this.credentials = { userName: '', password: '' };
+    this.errorMessage = '';
+    this.debugMessage = '';
+    this.isLoading = false;
+  }
 
   onSubmit(): void {
   if (!this.credentials.userName || !this.credentials.password) {

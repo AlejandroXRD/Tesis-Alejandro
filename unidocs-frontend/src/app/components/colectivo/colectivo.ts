@@ -15,8 +15,10 @@ interface ProfessorSelection {
   selector: 'app-colectivo',
   standalone: true,
   imports: [CommonModule, FormsModule],
+
   templateUrl: './colectivo.html',
   styleUrl: './colectivo.css'
+
 })
 export class ColectivoComponent implements OnInit {
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
