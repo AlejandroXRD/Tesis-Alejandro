@@ -37,7 +37,6 @@ import { ThemeService } from './services/theme.service';
     .main-content {
       flex: 1;
       min-height: calc(100vh - 120px);
-      padding: 2rem 1rem;
     }
 
     .main-content.auth-page {

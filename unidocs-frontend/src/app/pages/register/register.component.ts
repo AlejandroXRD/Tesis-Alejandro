@@ -9,8 +9,8 @@ import { HttpErrorResponse, HttpClient } from '@angular/common/http';
   selector: 'app-register',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  styleUrl: "./register.component.css",
-  templateUrl: "./register.component.html"
+  styleUrl: './register.component.css',
+  templateUrl: './register.component.html'
 })
 export class RegisterComponent {
   private authService = inject(AuthService);
@@ -27,8 +27,11 @@ export class RegisterComponent {
   isLoading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
-  showError = signal(false);
+  hasError = signal(false);
   userNameStatus = signal<'idle' | 'checking' | 'available' | 'taken'>('idle');
+
+  // 👁️ Toggle de visibilidad de contraseña
+  showPassword = signal(false);
 
   private checkTimeout: any;
 
@@ -41,7 +44,7 @@ export class RegisterComponent {
 
   onUserNameChange(): void {
     const userName = this.credentials.nombre.trim();
-    
+
     if (this.checkTimeout) {
       clearTimeout(this.checkTimeout);
     }
@@ -52,6 +55,7 @@ export class RegisterComponent {
     }
 
     this.userNameStatus.set('checking');
+    this.clearError();
 
     this.checkTimeout = setTimeout(() => {
       this.checkUserNameAvailability(userName);
@@ -70,31 +74,44 @@ export class RegisterComponent {
       });
   }
 
+  /**
+   * Limpia el error en cuanto el usuario empieza a escribir.
+   */
+  onInputChange(): void {
+    if (this.errorMessage()) {
+      this.clearError();
+    }
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword.set(!this.showPassword());
+  }
+
   onSubmit(): void {
-    this.showError.set(true);
     this.errorMessage.set('');
     this.successMessage.set('');
+    this.hasError.set(false);
 
-    if (!this.credentials.nombre.trim() || 
-        !this.credentials.apellidos.trim() || 
+    if (!this.credentials.nombre.trim() ||
+        !this.credentials.apellidos.trim() ||
         !this.credentials.password ||
         !this.credentials.rol) {
-      this.errorMessage.set('Por favor completa todos los campos');
+      this.triggerError('Por favor completa todos los campos');
       return;
     }
 
     if (this.credentials.password.length < 6) {
-      this.errorMessage.set('La contraseña debe tener al menos 6 caracteres');
+      this.triggerError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
 
     if (this.credentials.nombre.trim().length < 3) {
-      this.errorMessage.set('El nombre de usuario debe tener al menos 3 caracteres');
+      this.triggerError('El nombre de usuario debe tener al menos 3 caracteres');
       return;
     }
 
     if (this.userNameStatus() === 'taken') {
-      this.errorMessage.set('Este nombre de usuario ya está en uso');
+      this.triggerError('Este nombre de usuario ya está en uso');
       return;
     }
 
@@ -107,23 +124,16 @@ export class RegisterComponent {
       rol: this.credentials.rol as 'ADMIN' | 'PPA' | 'JEFE_COLECTIVO' | 'PROFESOR'
     };
 
-    console.log('📤 Enviando registro:', payload);
-
     this.authService.register(payload).subscribe({
-      next: (response) => {
-        console.log('✅ Registro exitoso:', response);
-
-        // Flujo requerido: registrar y luego ir a login (sin autologin)
+      next: () => {
         this.isLoading.set(false);
         this.successMessage.set('¡Cuenta creada con éxito! Redirigiendo al login...');
-        this.errorMessage.set('');
 
         setTimeout(() => {
           this.router.navigate(['/login']);
         }, 1000);
       },
       error: (error: HttpErrorResponse) => {
-        console.error('❌ Error en el registro:', error);
         this.isLoading.set(false);
         this.handleError(error);
       }
@@ -132,26 +142,44 @@ export class RegisterComponent {
 
   private handleError(error: HttpErrorResponse): void {
     if (error.status === 0) {
-      this.errorMessage.set('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
+      this.triggerError('No se pudo conectar con el servidor. Verifica que el backend esté corriendo.');
     } else if (error.status === 409) {
-      this.errorMessage.set('Ya existe un usuario con ese nombre de usuario');
+      this.triggerError('Ya existe un usuario con ese nombre de usuario');
       this.userNameStatus.set('taken');
     } else if (error.status === 400) {
       const messages = error.error?.message;
       if (Array.isArray(messages)) {
-        this.errorMessage.set(messages.join(', '));
+        this.triggerError(messages.join(', '));
       } else {
-        this.errorMessage.set(messages || 'Datos inválidos');
+        this.triggerError(messages || 'Datos inválidos');
       }
     } else if (error.status === 500) {
-      this.errorMessage.set('Error interno del servidor. Intenta nuevamente.');
+      this.triggerError('Error interno del servidor. Intenta nuevamente.');
     } else {
       const message = error.error?.message || error.message;
-      this.errorMessage.set(typeof message === 'string' ? message : 'Error al registrar usuario');
+      this.triggerError(typeof message === 'string' ? message : 'Error al registrar usuario');
     }
+  }
+
+  /**
+   * Activa el error y re-dispara la animación shake.
+   */
+  private triggerError(message: string): void {
+    this.hasError.set(false);
+    this.errorMessage.set('');
+    setTimeout(() => {
+      this.errorMessage.set(message);
+      this.hasError.set(true);
+    }, 50);
+  }
+
+  private clearError(): void {
+    this.errorMessage.set('');
+    this.hasError.set(false);
   }
 
   goHome(): void {
     this.router.navigate(['/home']);
   }
 }
+

@@ -1,324 +1,599 @@
-.register-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: calc(100vh - 80px);
-      padding: 2rem 1rem;
-    }
+/* ============================================================
+   REGISTER COMPONENT — Mismo diseño visual que Login
+   Usa las CSS variables de tu style.scss global
+   ============================================================ */
 
-    .register-card {
-      background: var(--bg-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      text-align: center !important;
-      margin: 0 auto !important;
-    }
 
-    .register-card h2 {
-      margin-bottom: 0.5rem !important;
-      color: var(--text-primary) !important;
-      text-align: center !important;
-      width: 100% !important;
-    }
+.title-container {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
 
-    .register-card .subtitle {
-      color: var(--text-secondary) !important;
-      margin-bottom: 2rem !important;
-      font-size: 0.875rem !important;
-      text-align: center !important;
-      width: 100% !important;
-    }
+.loginTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 
-    form {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 1rem !important;
-      width: 100% !important;
-    }
+.register-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+  background: var(--bg-tertiary);
+}
 
-    .form-group {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 0.25rem !important;
-      text-align: center !important;
-      width: 100% !important;
-      align-items: center !important;
-    }
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.04),
+    0 10px 30px -5px rgba(0, 0, 0, 0.08);
+  text-align: left !important;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
 
-    .form-group label {
-      font-weight: 500 !important;
-      color: var(--text-primary) !important;
-      font-size: 0.875rem !important;
-      text-align: center !important;
-      width: 100% !important;
-      display: block !important;
-    }
+/* ============================================================
+   LOGO UNIDOCS
+   ============================================================ */
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
 
-    .form-group input,
-    .form-group select,
-    .select-wrapper select,
-    .input-wrapper input {
-      padding: 0.75rem !important;
-      border: 1px solid var(--border-color) !important;
-      border-radius: 4px !important;
-      background-color: var(--bg-primary) !important;
-      color: var(--text-primary) !important;
-      text-align: center !important;
-      transition: all 0.2s !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-      display: block !important;
-    }
+.brand img {
+  max-width: 70px;
+  max-height: 70px;
+}
 
-    .form-group input::placeholder,
-    .input-wrapper input::placeholder {
-      text-align: center !important;
-      color: var(--text-secondary) !important;
-      opacity: 1 !important;
-    }
+.brand-logo {
+  max-width: 180px;
+  max-height: 90px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
 
-    .form-group input:focus::placeholder,
-    .input-wrapper input:focus::placeholder {
-      text-align: center !important;
-    }
+/* ============================================================
+   TÍTULOS
+   ============================================================ */
+.register-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: left;
+  display: flex;
+  letter-spacing: -0.02em;
+}
 
-    .form-group input:focus,
-    .form-group select:focus,
-    .select-wrapper select:focus,
-    .input-wrapper input:focus {
-      border-color: var(--primary-color) !important;
-      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
-      outline: none !important;
-    }
+.register-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0 0 2rem 0;
+}
 
-    .form-group input.input-error,
-    .form-group select.input-error,
-    .input-wrapper input.input-error,
-    .select-wrapper select.input-error {
-      border-color: #ef4444 !important;
-    }
+/* ============================================================
+   FORMULARIO
+   ============================================================ */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+  text-align: left;
+}
 
-    .form-group input.input-error:focus,
-    .form-group select.input-error:focus,
-    .input-wrapper input.input-error:focus,
-    .select-wrapper select.input-error:focus {
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
-    }
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
-    .form-group input.input-success,
-    .input-wrapper input.input-success {
-      border-color: #16a34a !important;
-    }
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-left: 0.25rem;
+  display: flex;
+  text-align: left;
+}
 
-    .form-group input.input-checking,
-    .input-wrapper input.input-checking {
-      border-color: #f59e0b !important;
-    }
+/* ============================================================
+   INPUTS CON ICONO
+   ============================================================ */
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
-    .field-error {
-      color: #ef4444 !important;
-      font-size: 0.75rem !important;
-      text-align: center !important;
-      margin-top: 0.25rem !important;
-      width: 100% !important;
-      display: block !important;
-    }
+.input-icon {
+  position: absolute;
+  left: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: color 0.2s ease;
+  z-index: 1;
+}
 
-    .field-success {
-      color: #16a34a !important;
-      font-size: 0.75rem !important;
-      text-align: center !important;
-      margin-top: 0.25rem !important;
-      width: 100% !important;
-      display: block !important;
-    }
+.input-icon svg {
+  width: 18px;
+  height: 18px;
+}
 
-    .input-wrapper {
-      position: relative !important;
-      width: 100% !important;
-      display: block !important;
-    }
-    
-    .input-wrapper .input-status {
-      position: absolute !important;
-      right: 0.75rem !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      display: flex !important;
-      align-items: center !important;
-      pointer-events: none !important;
-    }
-    
-    .input-wrapper .input-status .spinner-small {
-      display: inline-block !important;
-    }
+.form-input {
+  width: 100%;
+  padding: 0.75rem 0.875rem 0.75rem 2.75rem;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  outline: none;
+  text-align: left !important;
+}
 
-    .input-wrapper input {
-      padding-right: 2.5rem !important;
-    }
+/* Input de contraseña con espacio extra para el botón de toggle */
+.input-with-toggle {
+  padding-right: 2.875rem;
+}
 
-    .select-wrapper {
-      position: relative !important;
-      width: 100% !important;
-      display: block !important;
-    }
+.form-input::placeholder {
+  color: var(--text-tertiary);
+}
 
-    .select-wrapper select {
-      appearance: none !important;
-      -webkit-appearance: none !important;
-      -moz-appearance: none !important;
-      width: 100% !important;
-      padding: 0.75rem 2.5rem 0.75rem 0.75rem !important;
-      border: 1px solid var(--border-color) !important;
-      border-radius: 4px !important;
-      background-color: var(--bg-primary) !important;
-      color: var(--text-primary) !important;
-      text-align: center !important;
-      text-align-last: center !important;
-      cursor: pointer !important;
-      transition: all 0.2s !important;
-      box-sizing: border-box !important;
-      display: block !important;
-    }
+.form-input:hover:not(:focus) {
+  background-color: var(--bg-tertiary);
+}
 
-    .select-wrapper select:focus {
-      border-color: var(--primary-color) !important;
-      box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
-      outline: none !important;
-    }
+.form-input:focus {
+  background-color: var(--bg-primary);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(30, 64, 175, 0.12);
+}
 
-    .select-wrapper select:invalid,
-    .select-wrapper select.ng-empty {
-      color: var(--text-secondary) !important;
-    }
+.input-wrapper:focus-within .input-icon {
+  color: var(--primary-color);
+}
 
-    .select-wrapper select.has-value,
-    .select-wrapper select.ng-valid:not(.ng-empty) {
-      color: var(--text-primary) !important;
-    }
+/* ============================================================
+   ESTADOS DE VALIDACIÓN DEL USERNAME
+   ============================================================ */
+.form-input.input-success {
+  background-color: var(--bg-secondary);
+  border-color: #16a34a;
+}
 
-    .select-wrapper .select-arrow {
-      position: absolute !important;
-      right: 0.75rem !important;
-      top: 50% !important;
-      transform: translateY(-50%) !important;
-      pointer-events: none !important;
-      color: var(--text-secondary) !important;
-      font-size: 0.75rem !important;
-    }
+.form-input.input-success:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+}
 
-    .spinner-small {
-      display: inline-block !important;
-      width: 16px !important;
-      height: 16px !important;
-      border: 2px solid #f59e0b !important;
-      border-top-color: transparent !important;
-      border-radius: 50% !important;
-      animation: spin 0.6s linear infinite !important;
-    }
+.form-input.input-error {
+  background-color: var(--bg-secondary);
+  border-color: var(--error-color);
+}
 
-    .spinner {
-      display: inline-block !important;
-      width: 14px !important;
-      height: 14px !important;
-      border: 2px solid white !important;
-      border-top-color: transparent !important;
-      border-radius: 50% !important;
-      animation: spin 0.6s linear infinite !important;
-      margin-right: 0.5rem !important;
-      vertical-align: middle !important;
-    }
+.form-input.input-error:focus {
+  border-color: var(--error-color);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+}
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+.form-input.input-checking {
+  border-color: #f59e0b;
+}
 
-    .btn-submit,
-    .btn-home {
-      padding: 0.75rem !important;
-      border-radius: 4px !important;
-      font-weight: 600 !important;
-      transition: all 0.3s ease !important;
-      cursor: pointer !important;
-      text-align: center !important;
-      width: 100% !important;
-      display: block !important;
-      box-sizing: border-box !important;
-    }
+/* Spinner pequeño para validación de username */
+.input-status-right {
+  position: absolute;
+  right: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
 
-    .btn-submit {
-      background-color: var(--primary-color) !important;
-      color: white !important;
-      border: none !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-    }
+.spinner-tiny {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f59e0b;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
 
-    .btn-submit:hover:not(:disabled) {
-      background-color: var(--primary-dark) !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3) !important;
-    }
+/* ============================================================
+   SELECT
+   ============================================================ */
+.form-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  padding-right: 2.75rem;
+}
 
-    .btn-submit:disabled {
-      opacity: 0.6 !important;
-      cursor: not-allowed !important;
-    }
+.form-select:invalid,
+.form-select option[value=""] {
+  color: var(--text-tertiary);
+}
 
-    .btn-home {
-      background-color: transparent !important;
-      color: var(--primary-color) !important;
-      border: 2px solid var(--primary-color) !important;
-    }
+.form-select.has-value {
+  color: var(--text-primary);
+}
 
-    .btn-home:hover {
-      background-color: var(--primary-color) !important;
-      color: white !important;
-    }
+.select-wrapper {
+  position: relative;
+}
 
-    .error-message {
-      color: var(--error-color) !important;
-      font-size: 0.875rem !important;
-      text-align: center !important;
-      padding: 0.5rem !important;
-      background-color: rgba(239, 68, 68, 0.1) !important;
-      border-radius: 4px !important;
-      width: 100% !important;
-      display: block !important;
-      box-sizing: border-box !important;
-    }
+.select-arrow {
+  position: absolute;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
 
-    .success-message {
-      color: #16a34a !important;
-      font-size: 0.875rem !important;
-      text-align: center !important;
-      padding: 0.5rem !important;
-      background-color: rgba(34, 197, 94, 0.1) !important;
-      border-radius: 4px !important;
-      width: 100% !important;
-      display: block !important;
-      box-sizing: border-box !important;
-    }
+.select-arrow svg {
+  width: 16px;
+  height: 16px;
+}
 
-    .register-footer {
-      text-align: center !important;
-      margin-top: 1rem !important;
-      font-size: 0.875rem !important;
-      color: var(--text-secondary) !important;
-      width: 100% !important;
-      display: block !important;
-    }
+.select-wrapper:focus-within .select-arrow {
+  color: var(--primary-color);
+}
 
-    .register-footer a {
-      color: var(--primary-color) !important;
-      font-weight: 600 !important;
-    }
+/* ============================================================
+   👁️ BOTÓN TOGGLE PASSWORD
+   ============================================================ */
+.password-toggle {
+  position: absolute;
+  right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2;
+}
 
-    .register-footer a:hover {
-      text-decoration: underline !important;
-    }
+.password-toggle:hover:not(:disabled) {
+  background-color: var(--bg-tertiary);
+  color: var(--primary-color);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.password-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   MENSAJES DE VALIDACIÓN INLINE
+   ============================================================ */
+.field-error {
+  color: var(--error-color);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+  margin-left: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.field-error::before {
+  content: "⚠";
+  font-size: 0.875rem;
+}
+
+.field-success {
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+  margin-left: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.field-success::before {
+  content: "✓";
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   ALERTA DE ERROR
+   ============================================================ */
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  color: var(--error-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: fadeIn 0.25s ease;
+}
+
+.error-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.error-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.error-text {
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   ALERTA DE ÉXITO
+   ============================================================ */
+.success-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 0.875rem;
+  background-color: rgba(22, 163, 74, 0.08);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  border-radius: 10px;
+  color: #16a34a;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: fadeIn 0.25s ease;
+}
+
+.success-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.success-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.success-text {
+  text-align: left;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   BOTÓN PRINCIPAL
+   ============================================================ */
+.btn-submit {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1rem;
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--primary-light) 100%
+  );
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.15);
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -2px rgba(30, 64, 175, 0.4);
+  opacity: 0.96;
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(30, 64, 175, 0.15);
+}
+
+.btn-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   BOTÓN SECUNDARIO
+   ============================================================ */
+.btn-secondary {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  color: var(--primary-color);
+  background-color: var(--bg-secondary);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.register-footer {
+  margin: 1.5rem 0 0 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.register-footer a {
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.register-footer a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* ============================================================
+   ANIMACIONES
+   ============================================================ */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   DARK MODE
+   ============================================================ */
+:root.dark-mode .register-wrapper {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, #0a0f1a 100%);
+}
+
+:root.dark-mode .form-input {
+  background-color: var(--bg-tertiary);
+}
+
+:root.dark-mode .form-input:focus {
+  background-color: var(--bg-secondary);
+}
+
+:root.dark-mode .password-toggle:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+:root.dark-mode .error-alert {
+  background-color: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+:root.dark-mode .success-alert {
+  background-color: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.25);
+}
+
+:root.dark-mode .register-card {
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    0 10px 30px -5px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 2rem 1.5rem;
+    border-radius: 12px;
+  }
+
+  .register-title {
+    font-size: 1.375rem;
+  }
+
+  .brand-logo {
+    max-width: 150px;
+  }
+}
+
+.register-card input.form-input,
+.register-card select.form-input,
+.register-card textarea {
+  text-align: left !important;
+  direction: ltr !important;
+  unicode-bidi: normal !important;
+}

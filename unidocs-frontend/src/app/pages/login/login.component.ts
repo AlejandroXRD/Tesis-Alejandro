@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -8,8 +8,8 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  styleUrl: "./login.component.css",
-  templateUrl: "./login.component.html"
+  styleUrl: './login.component.css',
+  templateUrl: './login.component.html'
 })
 export class LoginComponent implements OnInit {
   private authService = inject(AuthService);
@@ -20,66 +20,82 @@ export class LoginComponent implements OnInit {
     password: ''
   };
 
-  isLoading = false;
+  isLoading = signal(false);
   errorMessage = '';
-  debugMessage = '';
+  hasError = false;
+
+  // 👁️ Control de visibilidad de la contraseña
+  showPassword = false;
 
   ngOnInit(): void {
-    // Evita que el componente reaproveche valores previos y limpia el formulario al entrar
     this.credentials = { userName: '', password: '' };
     this.errorMessage = '';
-    this.debugMessage = '';
-    this.isLoading = false;
+    this.hasError = false;
+    this.isLoading.set(false);
+    this.showPassword = false;
+  }
+
+  /**
+   * Limpia el error en cuanto el usuario empieza a escribir de nuevo.
+   */
+  onInputChange(): void {
+    if (this.errorMessage) {
+      this.errorMessage = '';
+      this.hasError = false;
+    }
+  }
+
+  /**
+   * Alterna la visibilidad de la contraseña.
+   */
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
   }
 
   onSubmit(): void {
-  if (!this.credentials.userName || !this.credentials.password) {
-    this.errorMessage = 'Por favor completa todos los campos';
-    return;
+    if (!this.credentials.userName || !this.credentials.password) {
+      this.triggerError('Por favor completa todos los campos');
+      return;
+    }
+
+    this.isLoading.set(true)
+    this.clearError();
+
+    this.authService.login(this.credentials).subscribe({
+      next: (response) => {
+        if (response?.token) {
+          this.authService.setToken(response.token);
+        }
+        if (response?.user) {
+          this.authService.setUser(response.user);
+        }
+        this.isLoading.set(false)
+        this.router.navigate(['/home']);
+      },
+      error: (error : any) => {
+        
+        console.log(error.error.message)
+        const message = error.error.message
+        this.isLoading.set(false)
+        this.errorMessage = error.error.message
+        // this.triggerError(message);
+      }
+    });
   }
 
-  this.isLoading = true;
-  this.errorMessage = '';
+  private triggerError(message: string): void {
+    this.hasError = false;
+    this.errorMessage = '';
+    setTimeout(() => {
+      this.errorMessage = message;
+      this.hasError = true;
+    }, 50);
+  }
 
-  console.log('📤 Enviando login:', this.credentials);
-
-  this.authService.login(this.credentials).subscribe({
-    next: (response) => {
-      console.log('✅ Login response completa:', response);
-      console.log('🔑 Token:', response?.token);
-      console.log('👤 User:', response?.user);
-      
-      // ✅ SIEMPRE intentar guardar, no solo si existe
-      if (response?.token) {
-        this.authService.setToken(response.token);
-      } else {
-        console.warn('⚠️ No vino token en la respuesta del backend');
-      }
-      
-      if (response?.user) {
-        this.authService.setUser(response.user);
-      }
-
-      // Verificar que se guardó
-      const tokenSaved = this.authService.getToken();
-      console.log('🔍 Token guardado en localStorage:', tokenSaved);
-
-      this.isLoading = false;
-
-      // ✅ SIEMPRE navega a /home (ruta segura sin guard)
-      // Si quieres ir a /colectivos, lo cambias después
-      console.log('🚀 Navegando a /home...');
-      this.router.navigate(['/home']);
-    },
-    error: (error) => {
-      console.error('❌ Error en login:', error);
-      this.isLoading = false;
-      this.errorMessage = error.status === 401
-        ? 'Usuario o contraseña incorrectos'
-        : 'Error al iniciar sesión';
-    }
-  });
-}
+  private clearError(): void {
+    this.errorMessage = '';
+    this.hasError = false;
+  }
 
   goHome(): void {
     this.router.navigate(['/home']);
