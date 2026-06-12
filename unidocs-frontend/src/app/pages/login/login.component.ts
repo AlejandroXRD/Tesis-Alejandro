@@ -220,13 +220,8 @@ export class LoginComponent implements OnInit {
   this.isLoading = true;
   this.errorMessage = '';
 
-  console.log('📤 Enviando login:', this.credentials);
-
   this.authService.login(this.credentials).subscribe({
     next: (response) => {
-      console.log('✅ Login response completa:', response);
-      console.log('🔑 Token:', response?.token);
-      console.log('👤 User:', response?.user);
       
       // ✅ SIEMPRE intentar guardar, no solo si existe
       if (response?.token) {
@@ -241,17 +236,14 @@ export class LoginComponent implements OnInit {
 
       // Verificar que se guardó
       const tokenSaved = this.authService.getToken();
-      console.log('🔍 Token guardado en localStorage:', tokenSaved);
 
       this.isLoading = false;
 
       // ✅ SIEMPRE navega a /home (ruta segura sin guard)
       // Si quieres ir a /colectivos, lo cambias después
-      console.log('🚀 Navegando a /home...');
       this.router.navigate(['/home']);
     },
     error: (error) => {
-      console.error('❌ Error en login:', error);
       this.isLoading = false;
       this.errorMessage = error.status === 401
         ? 'Usuario o contraseña incorrectos'

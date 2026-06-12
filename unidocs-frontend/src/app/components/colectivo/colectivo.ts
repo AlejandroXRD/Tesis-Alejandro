@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ColectivoService, Colectivo, Profesor, ProfessorAsignmentDto } from '../../services/colectivo.service';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
@@ -14,7 +15,7 @@ interface ProfessorSelection {
 @Component({
   selector: 'app-colectivo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginatorModule],
 
   templateUrl: './colectivo.html',
   styleUrl: './colectivo.css'
@@ -42,17 +43,26 @@ export class ColectivoComponent implements OnInit {
 
   // Estados privados reactivos
   private colectivos = signal<Colectivo[]>([]);
+  anioFiltro = signal<number>(0);
   private todosLosProfesores: Profesor[] = [];
 
-  // Formulario local (mantenemos objeto para compatibilidad directa con ngModel)
+  first = signal<number>(0);
+  rows = signal<number>(5);
+
+
   form = { nombreColectivo: '', year: null as number | null };
   errores = signal<Record<string, string>>({});
 
-  // 🧠 Filtro reactivo optimizado con Computed (se actualiza solo si cambian los colectivos o el curso)
+
   colectivosFiltrados = computed(() => {
     const curso = this.cursoSeleccionado();
     if (!curso) return [];
-    return this.colectivos().filter(c => c.modalidad === curso);
+    let resultados = this.colectivos().filter(c => c.modalidad === curso);
+    const anio = this.anioFiltro();
+    if (anio !== 0) {
+      resultados = resultados.filter(c => c.year === anio);
+    }
+    return resultados;
   });
 
   constructor(private colectivoService: ColectivoService) {}
@@ -60,6 +70,13 @@ export class ColectivoComponent implements OnInit {
   ngOnInit(): void {
     this.cargarProfesores();
   }
+
+  colectivosPaginados = computed(() => {
+  const inicio = this.first();
+  const fin = inicio + this.rows();
+  return this.colectivosFiltrados().slice(inicio, fin);
+});
+
 
   private cargarProfesores(): void {
     this.cargandoProfesores.set(true);
@@ -78,6 +95,9 @@ export class ColectivoComponent implements OnInit {
   // ── Selección de curso ──
   seleccionarCurso(curso: Curso): void {
     this.cursoSeleccionado.set(curso);
+    this.anioFiltro.set(0);
+    this.first.set(0);
+    this.rows.set(5);
     this.error.set('');
     this.colectivoActivo.set(null);
     this.cargando.set(true); // Ahora el estado de carga reaccionará de inmediato
@@ -101,9 +121,21 @@ export class ColectivoComponent implements OnInit {
     });
   }
 
+  filterByYear(event: Event): void {
+  const target = event.target as HTMLSelectElement;
+  this.anioFiltro.set(Number(target.value));
+  this.first.set(0);
+  this.rows.set(5);
+  const actualVisible = this.colectivosFiltrados(). some(c => c.colectivoId === this.colectivoActivo()?.colectivoId);
+  if (!actualVisible) {
+    this.colectivoActivo.set(this.colectivosFiltrados()[0] ?? null);
+  }
+}
+
   volverASeleccion(): void {
     this.cursoSeleccionado.set(null);
     this.colectivoActivo.set(null);
+    this.anioFiltro.set(0);
     this.mensaje.set('');
     this.error.set('');
   }
@@ -303,4 +335,9 @@ export class ColectivoComponent implements OnInit {
       return copia;
     });
   }
+
+      onPageChange(event: PaginatorState) {
+        this.first.set(event.first ?? 0);
+        this.rows.set(event.rows ?? 5);
+    }
 }

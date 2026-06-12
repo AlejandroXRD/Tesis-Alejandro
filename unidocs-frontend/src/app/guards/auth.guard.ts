@@ -16,15 +16,10 @@ export class AuthGuard implements CanActivate {
     state: RouterStateSnapshot
   ): boolean {
     const token = this.authService.getToken();
-    console.log('🛡️ AuthGuard - intentando acceder a:', state.url);
-    console.log('🛡️ AuthGuard - token en localStorage:', token);
 
     if (this.authService.isLoggedIn()) {
-      console.log('✅ AuthGuard - acceso permitido');
       return true;
     }
-
-    console.log('❌ AuthGuard - sin token, redirigiendo a /login');
     this.router.navigate(['/login']);
     return false;
   }

@@ -71,7 +71,7 @@ export class ColectivoService {
   }
 
   updateColectivo(id: string, data: UpdateColectivoRequest): Observable<Colectivo> {
-    return this.apiService.patch<Colectivo>(`/colectivo/${id}`, data);
+    return this.http.patch<Colectivo>(`${this.colectivoURL}/${id}`, data);
   }
 
   deleteColectivo(id: string): Observable<void> {

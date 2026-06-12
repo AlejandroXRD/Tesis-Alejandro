@@ -48,6 +48,14 @@
         <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear Colectivo</button>
         <button type="button" class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo()">Editar</button>
         <button type="button" class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo()">Eliminar</button>
+        <select (change)="filterByYear($event)" name="Filtrar por año" id="">
+          <option value="0">Ver todos</option>
+          <option value="1">1er año</option>
+          <option value="2">2do año</option>
+          <option value="3">3er año</option>
+          <option value="4">4to año</option>
+          <option value="5">5to año</option>
+        </select>
       </div>
       <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">Cambiar curso</button>
     </div>
@@ -68,7 +76,7 @@
         </div>
         <div class="panel-body">
           <div class="colective-list" *ngIf="colectivosFiltrados().length > 0; else emptyState">
-            <div class="colective-card-wrapper" *ngFor="let colectivo of colectivosFiltrados()">
+            <div class="colective-card-wrapper" *ngFor="let colectivo of colectivosPaginados()">
               <button
                 type="button"
                 class="colective-card"
@@ -95,6 +103,7 @@
             </div>
           </ng-template>
         </div>
+        <p-paginator (onPageChange)="onPageChange($event)" [first]="first()" [rows]="rows()" [totalRecords]="colectivosFiltrados().length" />
       </section>
 
       <aside class="panel detail-panel" *ngIf="colectivoActivo()">
@@ -133,7 +142,7 @@
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2 id="modal-title">{{ modoModal() === 'crear' ? 'Nuevo Colectivo' : 'Editar Colectivo' }}</h2>
-        <button type="button" class="modal-close" (click)="cerrarModal()">Cerrar</button>
+        <button type="button" class="modal-close" (click)="cerrarModal()">X</button>
       </div>
 
       <div class="modal-body">

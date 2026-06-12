@@ -11,7 +11,7 @@ class ProfessorAsignmentDto {
 export class UpdateColectivoDto {
     @IsString()
     @IsOptional()
-    nombreColecivo? : string
+    nombreColectivo? : string
 
     @IsInt()
     @IsOptional()
