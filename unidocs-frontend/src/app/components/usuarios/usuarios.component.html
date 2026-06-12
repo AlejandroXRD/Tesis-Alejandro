@@ -1,0 +1,91 @@
+<section class="tareas-page container">
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Administración
+      </span>
+      <h1>Usuarios</h1>
+      <p class="subtitle">Listado de usuarios registrados y asignación de roles.</p>
+    </div>
+    <div class="header-deco" aria-hidden="true"></div>
+  </header>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Todos los Usuarios</h2>
+      <span class="count-badge">{{ usuarios.length }}</span>
+    </div>
+
+    <div class="panel-body">
+      <div *ngIf="loading" class="loading-state" role="status" aria-live="polite">
+        <div class="loading-shell">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="loading-text">Cargando usuarios...</div>
+        </div>
+
+        <div class="skeleton-list" aria-hidden="true">
+          <div class="skeleton-card" *ngFor="let _ of [0,1,2,3]">
+            <div class="sk-line sk-line--title"></div>
+            <div class="sk-line sk-line--sub"></div>
+            <div class="sk-line sk-line--badge"></div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="error" class="error-state" role="alert">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!loading && !error && usuarios.length === 0" class="empty-state">
+        No hay usuarios disponibles.
+      </div>
+
+      <div *ngIf="!loading && !error && usuarios.length > 0" class="usuarios-list">
+        <article class="usuario-card" *ngFor="let u of usuarios">
+          <div class="usuario-top">
+            <div class="usuario-info">
+              <h3 class="usuario-nombre">{{ u.userName }}</h3>
+              <p class="usuario-sub">{{ u.apellido }}</p>
+            </div>
+
+            <span class="usuario-id-badge" aria-label="ID del usuario">
+              {{ u.userId }}
+            </span>
+          </div>
+
+          <div class="usuario-role-row">
+            <label class="form-label" for="rol-{{ u.userId }}">Rol</label>
+
+            <select
+              id="rol-{{ u.userId }}"
+              [(ngModel)]="u.rol"
+              class="role-select"
+              [disabled]="savingRoleForUserId === u.userId"
+              (change)="guardarRol(u)"
+            >
+              <option *ngFor="let r of roles" [value]="r">
+                {{ r }}
+              </option>
+            </select>
+
+            <span
+              *ngIf="savingRoleForUserId === u.userId"
+              class="saving-hint"
+              aria-live="polite"
+            >
+              Guardando...
+            </span>
+          </div>
+
+          <div class="usuario-meta">
+            <div class="meta-row">
+              <span class="meta-label">Fecha</span>
+              <span class="meta-value">{{ formatFecha(u.createdAt) }}</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</section>

@@ -28,4 +28,8 @@ export class UserService {
   getUsersByRole(rol: string): Observable<User[]> {
     return this.apiService.get<User[]>(`/user?rol=${rol}`);
   }
+
+  updateUserRole(userId: string, rol: User['rol']): Observable<User> {
+    return this.apiService.patch<User>(`/user/${userId}`, { rol });
+  }
 }
