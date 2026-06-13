@@ -17,23 +17,23 @@ export class UserService {
 
   constructor(private apiService: ApiService) { }
 
-  // ✅ CAMBIAR DE /api/users A /user
   getAllUsers(): Observable<User[]> {
-    return this.apiService.get<User[]>('/user');  // ← Sin /api
+    return this.apiService.get<User[]>('/user');
   }
 
-  // ✅ CAMBIAR DE /api/users/:id A /user/:id
   getUserById(id: string): Observable<User> {
-    return this.apiService.get<User>(`/user/${id}`);  // ← Sin /api
+    return this.apiService.get<User>(`/user/${id}`);
   }
 
-  // ✅ CAMBIAR
   getUsersByRole(rol: string): Observable<User[]> {
-    return this.apiService.get<User[]>(`/user?rol=${rol}`);  // ← Sin /api
+    return this.apiService.get<User[]>(`/user?rol=${rol}`);
   }
 
-  // ✅ CAMBIAR
   updateUserRole(userId: string, rol: User['rol']): Observable<User> {
-    return this.apiService.patch<User>(`/user/${userId}`, { rol });  // ← Sin /api
+    return this.apiService.patch<User>(`/user/${userId}`, { rol });
+  }
+
+  deleteUser(userId: string): Observable<void> {
+    return this.apiService.delete<void>(`/user/${userId}`);
   }
 }
