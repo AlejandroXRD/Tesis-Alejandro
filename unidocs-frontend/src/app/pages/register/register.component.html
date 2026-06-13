@@ -92,43 +92,6 @@
         </div>
       </div>
 
-      <!-- ===== Rol ===== -->
-      <div class="form-group">
-        <label for="rol" class="form-label">Rol</label>
-        <div class="input-wrapper select-wrapper">
-          <span class="input-icon" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-              <circle cx="12" cy="7" r="4"/>
-            </svg>
-          </span>
-
-          <select
-            id="rol"
-            [(ngModel)]="credentials.rol"
-            (ngModelChange)="onInputChange()"
-            name="rol"
-            class="form-input form-select"
-            [class.has-value]="credentials.rol"
-          >
-            <option value="" disabled hidden>Seleccione su rol</option>
-            @for (rol of rolOptions; track rol.value) {
-              <option [value]="rol.value">{{ rol.label }}</option>
-            }
-          </select>
-
-          <span class="select-arrow" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="6 9 12 15 18 9"/>
-            </svg>
-          </span>
-        </div>
-      </div>
-
       <!-- ===== Contraseña con toggle de visibilidad ===== -->
       <div class="form-group">
         <label for="password" class="form-label">Contraseña</label>
