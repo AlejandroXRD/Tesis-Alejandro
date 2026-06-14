@@ -79,7 +79,9 @@ export class ColectivoService {
       await this.prisma.colectivoProfesor.deleteMany({
         where: { colectivoId: id }
       })
-      return col;
+      return colectivoExist;
+    }
+  }
 
     // // Preparar datos para actualizar
     // const updateData: any = {}
@@ -111,7 +113,6 @@ export class ColectivoService {
     //   data: updateData,
     //   include: { profesores: true }
     // })
-  }
 
   async remove(id: string) {
   const colectivoExist = await this.prisma.colectivo.findUnique({
