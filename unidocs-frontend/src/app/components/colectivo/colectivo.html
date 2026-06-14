@@ -64,9 +64,26 @@
 
     <div class="toolbar">
       <div class="toolbar-group">
-        <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear Colectivo</button>
-        <button type="button" class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo()">Editar</button>
-        <button type="button" class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo()">Eliminar</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--primary"
+          (click)="abrirModal()"
+        >Crear Colectivo</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--secondary"
+          (click)="editarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >Editar</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--danger"
+          (click)="eliminarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >Eliminar</button>
       </div>
       <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">Cambiar curso</button>
     </div>
@@ -112,7 +129,12 @@
           <ng-template #emptyState>
             <div class="empty-state">
               <p>No hay colectivos para este curso.</p>
-              <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear primero</button>
+              <button
+                *ngIf="puedeGestionarColectivos()"
+                type="button"
+                class="btn btn--primary"
+                (click)="abrirModal()"
+              >Crear primero</button>
             </div>
           </ng-template>
         </div>
@@ -155,7 +177,12 @@
           </dl>
 
           <div class="detail-actions" style="margin-top:1rem;">
-            <button type="button" class="btn btn--secondary" (click)="abrirModalAsignarProfesores()">Asignar Profesor</button>
+            <button
+              *ngIf="puedeGestionarColectivos()"
+              type="button"
+              class="btn btn--secondary"
+              (click)="abrirModalAsignarProfesores()"
+            >Asignar Profesor</button>
           </div>
         </div>
       </aside>

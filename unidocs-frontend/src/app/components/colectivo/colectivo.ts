@@ -31,6 +31,11 @@ interface ProfesorAsignadoView {
   styleUrl: './colectivo.css'
 })
 export class ColectivoComponent implements OnInit {
+  // Roles autorizados para crear/editar/eliminar/asignar profesores
+  private readonly rolesPermitidos = new Set(['ADMIN', 'DECANO_VICEDECANO', 'JEFE_DEPARTAMENTO']);
+
+  puedeGestionarColectivos = signal<boolean>(false);
+
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
 
   // 🚦 Estados de la aplicación (Signals)
@@ -65,7 +70,11 @@ export class ColectivoComponent implements OnInit {
     return this.colectivos().filter(c => c.modalidad === curso);
   });
 
-  constructor(private colectivoService: ColectivoService) {}
+  constructor(private colectivoService: ColectivoService) {
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    const rol = (user?.rol ?? '').toString().toUpperCase();
+    this.puedeGestionarColectivos.set(this.rolesPermitidos.has(rol));
+  }
 
   ngOnInit(): void {
     this.cargarProfesores();
