@@ -79,21 +79,38 @@ export class ColectivoService {
       await this.prisma.colectivoProfesor.deleteMany({
         where: { colectivoId: id }
       })
+      return col;
 
-      // Crear nuevos profesores con sus asignaturas
-      updateData.profesores = {
-        create: updateColectivoDto.profesores.map(profesor => ({
-          userId: profesor.profesorId,
-          asignatura: profesor.asignatura
-        }))
-      }
-    }
+    // // Preparar datos para actualizar
+    // const updateData: any = {}
+    // if(updateColectivoDto.nombreColecivo) {
+    //   updateData.nombreColectivo = updateColectivoDto.nombreColecivo
+    // }
+    // if(updateColectivoDto.year) {
+    //   updateData.year = updateColectivoDto.year
+    // }
 
-    return this.prisma.colectivo.update({
-      where: { colectivoId: id },
-      data: updateData,
-      include: { profesores: true }
-    })
+    // // Actualizar profesores si se proporcionan
+    // if(updateColectivoDto.profesores && updateColectivoDto.profesores.length > 0) {
+    //   // Eliminar profesores actuales
+    //   await this.prisma.colectivoProfesor.deleteMany({
+    //     where: { colectivoId: id }
+    //   })
+
+    //   // Crear nuevos profesores con sus asignaturas
+    //   updateData.profesores = {
+    //     create: updateColectivoDto.profesores.map(profesor => ({
+    //       userId: profesor.profesorId,
+    //       asignatura: profesor.asignatura
+    //     }))
+    //   }
+    // }
+
+    // return this.prisma.colectivo.update({
+    //   where: { colectivoId: id },
+    //   data: updateData,
+    //   include: { profesores: true }
+    // })
   }
 
   async remove(id: string) {

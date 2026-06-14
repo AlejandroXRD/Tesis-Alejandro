@@ -1,14 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  ColectivoService,
-  Colectivo,
-  Profesor,
-  ProfessorAsignmentDto
-} from '../../services/colectivo.service';
-
-
+import { ColectivoService, Colectivo, Profesor, ProfessorAsignmentDto } from '../../services/colectivo.service';
+import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
@@ -28,7 +22,8 @@ interface ProfesorAsignadoView {
 @Component({
   selector: 'app-colectivo',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginatorModule],
+
   templateUrl: './colectivo.html',
   styleUrl: './colectivo.css'
 })
@@ -61,30 +56,26 @@ export class ColectivoComponent implements OnInit {
 
   // Estado privado
   private colectivos = signal<Colectivo[]>([]);
+  anioFiltro = signal<number>(0);
   private todosLosProfesores: Profesor[] = [];
 
-  // Formulario
+  first = signal<number>(0);
+  rows = signal<number>(5);
+
+
   form = { nombreColectivo: '', year: null as number | null };
   errores = signal<Record<string, string>>({});
 
-  // 🧠 Filtro reactivo
+
   colectivosFiltrados = computed(() => {
     const curso = this.cursoSeleccionado();
     if (!curso) return [];
-
-    const lista = this.colectivos().filter(c => c.modalidad === curso);
-
-    // Si NO puede gestionar, mostrar solo colectivos en los que el usuario (profesor) está asignado.
-    if (!this.puedeGestionarColectivos()) {
-      const user = JSON.parse(localStorage.getItem('user') || 'null');
-      const userId: string | null = user?.userId ?? user?.id ?? null;
-      if (!userId) return [];
-
-      return lista.filter(c => (c.profesores ?? []).some(p => p.userId === userId));
+    let resultados = this.colectivos().filter(c => c.modalidad === curso);
+    const anio = this.anioFiltro();
+    if (anio !== 0) {
+      resultados = resultados.filter(c => c.year === anio);
     }
-
-    // ✅ ADMIN/DECANO/JEFE: mostrar todos los colectivos del curso
-    return lista;
+    return resultados;
   });
 
 
@@ -99,7 +90,13 @@ export class ColectivoComponent implements OnInit {
     this.cargarProfesores();
   }
 
-  // ── Carga inicial de profesores ──
+  colectivosPaginados = computed(() => {
+  const inicio = this.first();
+  const fin = inicio + this.rows();
+  return this.colectivosFiltrados().slice(inicio, fin);
+});
+
+
   private cargarProfesores(): void {
     this.cargandoProfesores.set(true);
     this.colectivoService.getAllProfesores().subscribe({
@@ -117,6 +114,9 @@ export class ColectivoComponent implements OnInit {
   // ── Selección de curso ──
   seleccionarCurso(curso: Curso): void {
     this.cursoSeleccionado.set(curso);
+    this.anioFiltro.set(0);
+    this.first.set(0);
+    this.rows.set(5);
     this.error.set('');
     this.colectivoActivo.set(null);
     this.cargando.set(true);
@@ -145,9 +145,21 @@ export class ColectivoComponent implements OnInit {
     });
   }
 
+  filterByYear(event: Event): void {
+  const target = event.target as HTMLSelectElement;
+  this.anioFiltro.set(Number(target.value));
+  this.first.set(0);
+  this.rows.set(5);
+  const actualVisible = this.colectivosFiltrados(). some(c => c.colectivoId === this.colectivoActivo()?.colectivoId);
+  if (!actualVisible) {
+    this.colectivoActivo.set(this.colectivosFiltrados()[0] ?? null);
+  }
+}
+
   volverASeleccion(): void {
     this.cursoSeleccionado.set(null);
     this.colectivoActivo.set(null);
+    this.anioFiltro.set(0);
     this.mensaje.set('');
     this.error.set('');
   }
@@ -373,4 +385,9 @@ export class ColectivoComponent implements OnInit {
         }
       });
   }
+
+      onPageChange(event: PaginatorState) {
+        this.first.set(event.first ?? 0);
+        this.rows.set(event.rows ?? 5);
+    }
 }
