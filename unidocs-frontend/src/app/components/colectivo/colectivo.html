@@ -83,11 +83,12 @@
       <section class="panel list-panel">
         <div class="panel-header">
           <h2>Colectivos</h2>
-          <span class="count-badge">{{ colectivosFiltrados().length }}</span>
+          <span class="count-badge">{{ (colectivosFiltrados() || []).length }}</span>
         </div>
         <div class="panel-body">
-          <div class="colective-list" *ngIf="colectivosFiltrados().length > 0; else emptyState">
-            <div class="colective-card-wrapper" *ngFor="let colectivo of colectivosFiltrados()">
+          <div class="colective-list" *ngIf="(colectivosFiltrados() || []).length > 0; else emptyState">
+            <div class="colective-card-wrapper" *ngFor="let colectivo of (colectivosFiltrados() || [])">
+
               <button
                 type="button"
                 class="colective-card"
@@ -100,7 +101,7 @@
                   <p class="card-desc">Creado: {{ colectivo.createdAt | date:'short' }}</p>
 
                   <div class="card-meta">
-<span class="meta-chip">{{ colectivo.profesores.length }} profesores</span>
+                    <span class="meta-chip">{{ colectivo.profesores?.length ?? 0 }} profesores</span>
                     <span class="meta-chip meta-chip--primary">{{ colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
                   </div>
                 </div>
@@ -123,17 +124,30 @@
           <h3 class="detail-nombre">{{ colectivoActivo()?.nombreColectivo }}</h3>
           <p class="detail-desc">ID: {{ colectivoActivo()?.colectivoId }}</p>
           <div class="detail-divider"></div>
+
           <dl class="detail-list">
-            <div class="detail-row"><dt>Modalidad</dt><dd>{{ colectivoActivo()?.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</dd></div>
-            <div class="detail-row"><dt>Año académico</dt><dd>{{ colectivoActivo()?.year }}°</dd></div>
-            <div class="detail-row"><dt>Profesores asignados</dt><dd>{{ colectivoActivo()?.profesores?.length ?? 0 }}</dd></div>
-            <div class="detail-row"><dt>Creado</dt><dd>{{ colectivoActivo()?.createdAt | date:'long' }}</dd></div>
+            <div class="detail-row">
+              <dt>Modalidad</dt>
+              <dd>{{ colectivoActivo()?.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Año académico</dt>
+              <dd>{{ colectivoActivo()?.year }}°</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Profesores asignados</dt>
+              <dd>{{ colectivoActivo()?.profesores?.length ?? 0 }}</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Creado</dt>
+              <dd>{{ colectivoActivo()?.createdAt | date:'long' }}</dd>
+            </div>
             <div class="detail-row" *ngIf="(colectivoActivo()?.profesores?.length ?? 0) > 0">
               <dt>Docentes</dt>
               <dd>
                 <ul>
                   <li *ngFor="let prof of colectivoActivo()?.profesores">
-                    {{ prof.userName }} {{ prof.apellido }} — {{ prof.asignatura }}
+                    {{ prof.userName }} ({{ prof.asignatura }})
                   </li>
                 </ul>
               </dd>
@@ -196,7 +210,7 @@
       <div class="modal-body">
         <p *ngIf="cargandoProfesores()">Cargando profesores...</p>
 
-        <div *ngIf="!cargandoProfesores() && profesoresDisponibles().length === 0">
+        <div *ngIf="!cargandoProfesores() && (profesoresDisponibles() || []).length === 0">
           <p>No hay profesores disponibles.</p>
         </div>
 

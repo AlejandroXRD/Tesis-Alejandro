@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ColectivoService, Colectivo, Profesor, ProfessorAsignmentDto } from '../../services/colectivo.service';
+import {
+  ColectivoService,
+  Colectivo,
+  Profesor,
+  ProfessorAsignmentDto
+} from '../../services/colectivo.service';
 
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
@@ -21,7 +26,7 @@ interface ProfessorSelection {
 export class ColectivoComponent implements OnInit {
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
 
-  // 🚦 Estados de la aplicación controlados por Signals
+  // 🚦 Estados de la aplicación (Signals)
   cursoSeleccionado = signal<Curso | null>(null);
   colectivoActivo = signal<Colectivo | null>(null);
   cargando = signal<boolean>(false);
@@ -38,15 +43,15 @@ export class ColectivoComponent implements OnInit {
   profesoresDisponibles = signal<ProfessorSelection[]>([]);
   cargandoProfesores = signal<boolean>(false);
 
-  // Estados privados reactivos
+  // Estado privado
   private colectivos = signal<Colectivo[]>([]);
   private todosLosProfesores: Profesor[] = [];
 
-  // Formulario local
+  // Formulario
   form = { nombreColectivo: '', year: null as number | null };
   errores = signal<Record<string, string>>({});
 
-  // 🧠 Filtro reactivo optimizado con Computed
+  // 🧠 Filtro reactivo
   colectivosFiltrados = computed(() => {
     const curso = this.cursoSeleccionado();
     if (!curso) return [];
@@ -59,6 +64,7 @@ export class ColectivoComponent implements OnInit {
     this.cargarProfesores();
   }
 
+  // ── Carga inicial de profesores ──
   private cargarProfesores(): void {
     this.cargandoProfesores.set(true);
     this.colectivoService.getAllProfesores().subscribe({
@@ -112,7 +118,7 @@ export class ColectivoComponent implements OnInit {
     this.mensaje.set('');
   }
 
-  // ── Modal de crear/editar colectivo ──
+  // ── Modal crear/editar ──
   abrirModal(): void {
     this.modoModal.set('crear');
     this.colectivoEditandoId = null;
@@ -207,18 +213,22 @@ export class ColectivoComponent implements OnInit {
       year: this.form.year!
     };
 
-    this.colectivoService.updateColectivo(this.colectivoEditandoId, datosActualizados).subscribe({
-      next: (colectivo) => {
-        this.colectivos.update(list => list.map(c => c.colectivoId === this.colectivoEditandoId ? colectivo : c));
-        this.colectivoActivo.set(colectivo);
-        this.mensaje.set('Colectivo actualizado correctamente.');
-        this.cerrarModal();
-      },
-      error: (err) => {
-        console.error('Error al actualizar colectivo:', err);
-        this.error.set('Error al actualizar el colectivo. Intente nuevamente.');
-      }
-    });
+    this.colectivoService
+      .updateColectivo(this.colectivoEditandoId, datosActualizados)
+      .subscribe({
+        next: (colectivo) => {
+          this.colectivos.update(list =>
+            list.map(c => (c.colectivoId === this.colectivoEditandoId ? colectivo : c))
+          );
+          this.colectivoActivo.set(colectivo);
+          this.mensaje.set('Colectivo actualizado correctamente.');
+          this.cerrarModal();
+        },
+        error: (err) => {
+          console.error('Error al actualizar colectivo:', err);
+          this.error.set('Error al actualizar el colectivo. Intente nuevamente.');
+        }
+      });
   }
 
   eliminarColectivo(): void {
@@ -240,7 +250,7 @@ export class ColectivoComponent implements OnInit {
     });
   }
 
-  // ── Modal de asignar profesores ──
+  // ── Modal asignar profesores ──
   abrirModalAsignarProfesores(): void {
     const activo = this.colectivoActivo();
     if (!activo) return;
@@ -272,13 +282,12 @@ export class ColectivoComponent implements OnInit {
     });
   }
 
-
-
   guardarProfesoresAsignados(): void {
     const activo = this.colectivoActivo();
     if (!activo) return;
 
     const profesoresSeleccionados = this.profesoresDisponibles().filter(p => p.seleccionado);
+
     if (profesoresSeleccionados.some(p => !p.asignatura.trim())) {
       this.error.set('Todos los profesores seleccionados deben tener una asignatura asignada.');
       return;
@@ -289,18 +298,22 @@ export class ColectivoComponent implements OnInit {
       asignatura: p.asignatura.trim()
     }));
 
-    this.colectivoService.updateColectivo(activo.colectivoId, { profesores: profesoresParaEnviar }).subscribe({
-      next: (colectivo) => {
-        this.colectivos.update(list => list.map(c => c.colectivoId === activo.colectivoId ? colectivo : c));
-        this.colectivoActivo.set(colectivo);
-        this.mensaje.set('Profesores asignados correctamente.');
-        this.cerrarModalAsignarProfesores();
-        this.error.set('');
-      },
-      error: (err) => {
-        console.error('Error al asignar profesores:', err);
-        this.error.set('Error al asignar profesores. Intente nuevamente.');
-      }
-    });
+    this.colectivoService
+      .updateColectivo(activo.colectivoId, { profesores: profesoresParaEnviar })
+      .subscribe({
+        next: (colectivo) => {
+          this.colectivos.update(list =>
+            list.map(c => (c.colectivoId === activo.colectivoId ? colectivo : c))
+          );
+          this.colectivoActivo.set(colectivo);
+          this.mensaje.set('Profesores asignados correctamente.');
+          this.cerrarModalAsignarProfesores();
+          this.error.set('');
+        },
+        error: (err) => {
+          console.error('Error al asignar profesores:', err);
+          this.error.set('Error al asignar profesores. Intente nuevamente.');
+        }
+      });
   }
 }

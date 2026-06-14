@@ -521,7 +521,6 @@
       color: var(--text-primary);
     }
 
-    /* INPUT NUMBER CON BOTONES +/- */
     .input-number-wrapper {
       display: flex;
       align-items: stretch;
