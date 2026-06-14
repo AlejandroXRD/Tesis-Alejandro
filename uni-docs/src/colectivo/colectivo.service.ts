@@ -129,4 +129,6 @@ export class ColectivoService {
     where: { colectivoId: id }
   });
   }
+
+  
 }
