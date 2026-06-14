@@ -15,7 +15,23 @@ export class ColectivoService {
   }
 
   findAll() {
-    return this.prisma.colectivo.findMany();
+    return this.prisma.colectivo.findMany({
+      include: {
+        profesores: {
+          include: {
+            profesor: {
+              select: {
+                userId: true,
+                userName: true,
+                apellido: true,
+                rol: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
   }
 
   findAllDiurno(){
@@ -48,9 +64,20 @@ export class ColectivoService {
     })
     if(!colectivoExist) throw new NotFoundException('Este colectivo no existe')
 
-      const col = await this.prisma.colectivo.update({
-        where: { colectivoId : id },
-        data: { nombreColectivo : updateColectivoDto.nombreColectivo, year : updateColectivoDto.year }
+    // Preparar datos para actualizar
+    const updateData: any = {}
+    if(updateColectivoDto.nombreColectivo) {
+      updateData.nombreColectivo = updateColectivoDto.nombreColectivo
+    }
+    if(updateColectivoDto.year) {
+      updateData.year = updateColectivoDto.year
+    }
+
+    // Actualizar profesores si se proporcionan
+    if(updateColectivoDto.profesores && updateColectivoDto.profesores.length > 0) {
+      // Eliminar profesores actuales
+      await this.prisma.colectivoProfesor.deleteMany({
+        where: { colectivoId: id }
       })
       return col;
 
@@ -86,7 +113,19 @@ export class ColectivoService {
     // })
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} colectivo`;
+  async remove(id: string) {
+  const colectivoExist = await this.prisma.colectivo.findUnique({
+    where: { colectivoId: id }
+  });
+  if (!colectivoExist) throw new NotFoundException('Este colectivo no existe');
+
+  // Primero eliminar las relaciones de profesores (foreign key)
+  await this.prisma.colectivoProfesor.deleteMany({
+    where: { colectivoId: id }
+  });
+
+  return this.prisma.colectivo.delete({
+    where: { colectivoId: id }
+  });
   }
 }

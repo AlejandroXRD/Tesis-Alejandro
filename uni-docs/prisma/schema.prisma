@@ -8,9 +8,11 @@ datasource db {
 
 enum Rol {
   ADMIN
+  DECANO_VICEDECANO
+  JEFE_DEPARTAMENTO
   PPA
-  JEFE_COLECTIVO
   PROFESOR
+  NUEVO_USUARIO
 }
 
 enum Modalidad {

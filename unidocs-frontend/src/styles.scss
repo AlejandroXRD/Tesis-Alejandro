@@ -139,6 +139,7 @@ select {
   border: 1px solid var(--border-color);
   padding: 0.5rem 0.75rem;
   border-radius: 4px;
+  text-align: left !important;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 
   &:focus {
@@ -212,7 +213,6 @@ select {
 .register-card input,
 .register-card select,
 .register-card textarea {
-  text-align: center !important;
   width: 100% !important;
   display: block !important;
   box-sizing: border-box !important;
@@ -220,21 +220,5 @@ select {
 
 .register-card input::placeholder,
 .register-card textarea::placeholder {
-  text-align: center !important;
   opacity: 1 !important;
-}
-
-.register-card select {
-  text-align-last: center !important;
-}
-
-.register-card label,
-.register-card small,
-.register-card p,
-.register-card h1,
-.register-card h2,
-.register-card h3,
-.register-card h4,
-.register-card div {
-  text-align: center !important;
 }

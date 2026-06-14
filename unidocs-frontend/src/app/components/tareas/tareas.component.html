@@ -1,0 +1,76 @@
+<section class="tareas-page container">
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Gestión de Tareas
+      </span>
+      <h1>Tareas</h1>
+      <p class="subtitle">Listado completo de tareas asignadas por el sistema.</p>
+    </div>
+    <div class="header-deco" aria-hidden="true"></div>
+  </header>
+
+  <button
+    class="btn btn--primary"
+    *ngIf="canCreateTarea()"
+    (click)="navigateToCrearTarea()"
+  >
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Crear Tarea
+  </button>
+
+  <section class="panel">
+    <div class="panel-header">
+      <h2>Mis Tareas</h2>
+      <span class="count-badge">{{ tareas.length }}</span>
+    </div>
+
+    <div class="panel-body">
+      <div *ngIf="loading" class="loading-state" role="status">
+        Cargando tareas...
+      </div>
+
+      <div *ngIf="error" class="error-state" role="alert">
+        {{ error }}
+      </div>
+
+      <div *ngIf="!loading && !error && tareas.length === 0" class="empty-state">
+        No hay tareas disponibles.
+      </div>
+
+      <div *ngIf="!loading && !error && tareas.length > 0" class="tareas-list">
+        <article class="tarea-card" *ngFor="let t of tareas">
+          <div class="tarea-top">
+            <h3 class="tarea-nombre">{{ t.nombreTarea }}</h3>
+            <span class="estado-badge" [class.estado-pendiente]="t.estado === 'PENDIENTE'">
+              {{ t.estado }}
+            </span>
+          </div>
+
+          <p class="tarea-desc">{{ t.descripcion }}</p>
+
+          <div class="tarea-meta">
+            <div class="meta-row">
+              <span class="meta-label">ID</span>
+              <span class="meta-value">{{ t.tareaId }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Fecha límite</span>
+              <span class="meta-value">{{ formatFecha(t.fechaLimite) }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Profesor</span>
+              <span class="meta-value">
+                {{ t.profesor.userName }} {{ t.profesor.apellido }}
+              </span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</section>

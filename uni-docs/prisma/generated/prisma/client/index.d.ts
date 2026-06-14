@@ -39,10 +39,12 @@ export type ColectivoProfesor = $Result.DefaultSelection<Prisma.$ColectivoProfes
  */
 export namespace $Enums {
   export const Rol: {
-  ADMIN: 'ADMIN',
+  ADMIN: 'Administrador',
+  DECANO_VICEDECANO: 'Decano-Vice Decano',
+  JEFE_DEPARTAMENTO: 'Jefe de Departamento',
   PPA: 'PPA',
-  JEFE_COLECTIVO: 'JEFE_COLECTIVO',
-  PROFESOR: 'PROFESOR'
+  PROFESOR: 'Profesor',
+  NUEVO_USUARIO: 'Nuevo Usuario'
 };
 
 export type Rol = (typeof Rol)[keyof typeof Rol]

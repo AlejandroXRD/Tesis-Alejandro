@@ -55,16 +55,15 @@ async login(loginDto: LoginDto) {
   });
 
   if (!existUser) {
-    throw new UnauthorizedException('Credenciales inválidas');
+    throw new BadRequestException(`El usuario ${loginDto.userName} no existe`);
   }
 
   const correctPassword = await compare(loginDto.password, existUser.password);
   
   if (!correctPassword) {
-    throw new UnauthorizedException('Credenciales inválidas');
+    throw new UnauthorizedException('Contraseña incorrecta');
   }
 
-  // ✅ ESTA ES LA PARTE CLAVE
   const payload = { 
     id: existUser.userId, 
     username: existUser.userName, 
