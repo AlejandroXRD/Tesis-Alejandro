@@ -24,14 +24,13 @@
   <div class="selection-grid" *ngIf="!cursoSeleccionado()">
     <button type="button" class="course-card course-diurno" (click)="seleccionarCurso('DIURNO')">
       <div class="course-icon course-icon--diurno">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5"/>
-              <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-              <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-            </svg>
-
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
       </div>
       <div class="course-body">
         <span class="course-tag">Curso</span>
@@ -39,16 +38,16 @@
         <p>Ver colectivos del turno diurno</p>
       </div>
       <svg class="course-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-          </svg>
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
     </button>
 
     <button type="button" class="course-card course-encuentros" (click)="seleccionarCurso('ENCUENTRO')">
       <div class="course-icon course-icon--encuentros">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
       </div>
       <div class="course-body">
         <span class="course-tag">Curso</span>
@@ -56,8 +55,8 @@
         <p>Ver colectivos del curso por encuentros</p>
       </div>
       <svg class="course-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-          </svg>
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
     </button>
   </div>
 
@@ -65,9 +64,26 @@
 
     <div class="toolbar">
       <div class="toolbar-group">
-        <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear Colectivo</button>
-        <button type="button" class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo()">Editar</button>
-        <button type="button" class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo()">Eliminar</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--primary"
+          (click)="abrirModal()"
+        >Crear Colectivo</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--secondary"
+          (click)="editarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >Editar</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--danger"
+          (click)="eliminarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >Eliminar</button>
       </div>
       <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">Cambiar curso</button>
     </div>
@@ -84,11 +100,12 @@
       <section class="panel list-panel">
         <div class="panel-header">
           <h2>Colectivos</h2>
-          <span class="count-badge">{{ colectivosFiltrados().length }}</span>
+          <span class="count-badge">{{ (colectivosFiltrados() || []).length }}</span>
         </div>
         <div class="panel-body">
-          <div class="colective-list" *ngIf="colectivosFiltrados().length > 0; else emptyState">
-            <div class="colective-card-wrapper" *ngFor="let colectivo of colectivosFiltrados()">
+          <div class="colective-list" *ngIf="(colectivosFiltrados() || []).length > 0; else emptyState">
+            <div class="colective-card-wrapper" *ngFor="let colectivo of (colectivosFiltrados() || [])">
+
               <button
                 type="button"
                 class="colective-card"
@@ -99,6 +116,7 @@
                 <div class="card-content">
                   <strong class="card-nombre">{{ colectivo.nombreColectivo }}</strong>
                   <p class="card-desc">Creado: {{ colectivo.createdAt | date:'short' }}</p>
+
                   <div class="card-meta">
                     <span class="meta-chip">{{ colectivo.profesores?.length ?? 0 }} profesores</span>
                     <span class="meta-chip meta-chip--primary">{{ colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
@@ -111,7 +129,12 @@
           <ng-template #emptyState>
             <div class="empty-state">
               <p>No hay colectivos para este curso.</p>
-              <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear primero</button>
+              <button
+                *ngIf="puedeGestionarColectivos()"
+                type="button"
+                class="btn btn--primary"
+                (click)="abrirModal()"
+              >Crear primero</button>
             </div>
           </ng-template>
         </div>
@@ -123,17 +146,30 @@
           <h3 class="detail-nombre">{{ colectivoActivo()?.nombreColectivo }}</h3>
           <p class="detail-desc">ID: {{ colectivoActivo()?.colectivoId }}</p>
           <div class="detail-divider"></div>
+
           <dl class="detail-list">
-            <div class="detail-row"><dt>Modalidad</dt><dd>{{ colectivoActivo()?.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</dd></div>
-            <div class="detail-row"><dt>Año académico</dt><dd>{{ colectivoActivo()?.year }}°</dd></div>
-            <div class="detail-row"><dt>Profesores asignados</dt><dd>{{ colectivoActivo()?.profesores?.length ?? 0 }}</dd></div>
-            <div class="detail-row"><dt>Creado</dt><dd>{{ colectivoActivo()?.createdAt | date:'long' }}</dd></div>
+            <div class="detail-row">
+              <dt>Modalidad</dt>
+              <dd>{{ colectivoActivo()?.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Año académico</dt>
+              <dd>{{ colectivoActivo()?.year }}°</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Profesores asignados</dt>
+              <dd>{{ colectivoActivo()?.profesores?.length ?? 0 }}</dd>
+            </div>
+            <div class="detail-row">
+              <dt>Creado</dt>
+              <dd>{{ colectivoActivo()?.createdAt | date:'long' }}</dd>
+            </div>
             <div class="detail-row" *ngIf="(colectivoActivo()?.profesores?.length ?? 0) > 0">
               <dt>Docentes</dt>
               <dd>
                 <ul>
                   <li *ngFor="let prof of colectivoActivo()?.profesores">
-                    {{ prof.userName }} {{ prof.apellido }} — {{ prof.asignatura }}
+                    {{ prof.userName }} ({{ prof.asignatura }})
                   </li>
                 </ul>
               </dd>
@@ -141,7 +177,12 @@
           </dl>
 
           <div class="detail-actions" style="margin-top:1rem;">
-            <button type="button" class="btn btn--secondary" (click)="abrirModalAsignarProfesores()">Asignar Profesor</button>
+            <button
+              *ngIf="puedeGestionarColectivos()"
+              type="button"
+              class="btn btn--secondary"
+              (click)="abrirModalAsignarProfesores()"
+            >Asignar Profesor</button>
           </div>
         </div>
       </aside>
@@ -149,6 +190,7 @@
     </div>
   </div>
 
+  <!-- Modal Crear/Editar Colectivo -->
   <div class="modal-backdrop" *ngIf="modalAbierto()" (click)="cerrarModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -182,38 +224,48 @@
     </div>
   </div>
 
+  <!-- Modal Asignar Profesores -->
   <div class="modal-backdrop" *ngIf="modalAsignarAbierto()" (click)="cerrarModalAsignarProfesores()" role="dialog" aria-modal="true" aria-labelledby="modal-asignar-title">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h2 id="modal-asignar-title">Asignar Profesores</h2>
-        <button type="button" class="modal-close" (click)="cerrarModalAsignarProfesores()">Cerrar</button>
+        <button type="button" class="modal-close modal-close--icon" (click)="cerrarModalAsignarProfesores()" aria-label="Cerrar">
+          <span aria-hidden="true">✕</span>
+        </button>
       </div>
 
       <div class="modal-body">
         <p *ngIf="cargandoProfesores()">Cargando profesores...</p>
 
-        <div *ngIf="!cargandoProfesores() && profesoresDisponibles().length === 0">
+        <div *ngIf="!cargandoProfesores() && (profesoresDisponibles() || []).length === 0">
           <p>No hay profesores disponibles.</p>
         </div>
 
-        <form *ngIf="!cargandoProfesores() && profesoresDisponibles().length > 0">
+        <div *ngIf="!cargandoProfesores() && profesoresDisponibles().length > 0">
           <div class="prof-list">
             <div class="prof-row" *ngFor="let item of profesoresDisponibles(); let i = index">
+
               <label class="prof-label">
-                <input type="checkbox" [(ngModel)]="profesoresDisponibles()[i].seleccionado" name="profSel{{i}}" (change)="toggleProfesor(i)" />
+                <input
+                  type="checkbox"
+                  [checked]="item.seleccionado"
+                  (change)="toggleProfesor(i)"
+                />
                 {{ item.profesor.userName }} {{ item.profesor.apellido }}
+                <span class="meta-chip" style="margin-left: 0.4rem; font-size: 0.7rem;">{{ item.profesor.rol }}</span>
               </label>
 
               <input
                 class="form-input"
                 placeholder="Asignatura"
-                [(ngModel)]="profesoresDisponibles()[i].asignatura"
-                name="profAsig{{i}}"
-                [disabled]="!profesoresDisponibles()[i].seleccionado"
+                [(ngModel)]="item.asignatura"
+                [disabled]="!item.seleccionado"
+                name="asignatura-{{ i }}"
               />
+
             </div>
           </div>
-        </form>
+        </div>
       </div>
 
       <div class="modal-footer">

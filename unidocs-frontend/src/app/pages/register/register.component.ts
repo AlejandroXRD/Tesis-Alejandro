@@ -20,8 +20,7 @@ export class RegisterComponent {
   credentials = {
     nombre: '',
     apellidos: '',
-    password: '',
-    rol: '' as '' | 'ADMIN' | 'PPA' | 'JEFE_COLECTIVO' | 'PROFESOR'
+    password: ''
   };
 
   isLoading = signal(false);
@@ -34,13 +33,6 @@ export class RegisterComponent {
   showPassword = signal(false);
 
   private checkTimeout: any;
-
-  rolOptions = [
-    { value: 'PROFESOR', label: 'Profesor' },
-    { value: 'JEFE_COLECTIVO', label: 'Jefe de Colectivo' },
-    { value: 'PPA', label: 'PPA' },
-    { value: 'ADMIN', label: 'Administrador' }
-  ];
 
   onUserNameChange(): void {
     const userName = this.credentials.nombre.trim();
@@ -94,8 +86,7 @@ export class RegisterComponent {
 
     if (!this.credentials.nombre.trim() ||
         !this.credentials.apellidos.trim() ||
-        !this.credentials.password ||
-        !this.credentials.rol) {
+        !this.credentials.password) {
       this.triggerError('Por favor completa todos los campos');
       return;
     }
@@ -121,7 +112,7 @@ export class RegisterComponent {
       userName: this.credentials.nombre.trim(),
       apellido: this.credentials.apellidos.trim(),
       password: this.credentials.password,
-      rol: this.credentials.rol as 'ADMIN' | 'PPA' | 'JEFE_COLECTIVO' | 'PROFESOR'
+      rol: 'NUEVO_USUARIO'
     };
 
     this.authService.register(payload).subscribe({

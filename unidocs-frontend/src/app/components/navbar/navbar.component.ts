@@ -27,6 +27,13 @@ export class NavbarComponent implements OnInit {
   // Usuario logueado (de localStorage, cargado en login.component.ts)
   loggedUser = computed(() => this.authService.getUser());
 
+  isAdmin = computed(() => {
+    const rolRaw = this.loggedUser()?.rol ?? '';
+    const rol = String(rolRaw).toLowerCase().trim();
+    // Admin: cualquier variante que contenga "admin"
+    return rol === 'admin' || rol.includes('admin');
+  });
+
   private lastScrollY = 0;
   private scrollThreshold = 50;
 

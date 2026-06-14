@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ForbiddenException, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignColectivosDto } from './dto/assign-colectivos.dto';
@@ -12,6 +12,11 @@ export class UserController {
   findAll() {
     return this.userService.findAll();
   }
+  
+  @Get('profesores')
+  findProfesores() {
+  return this.userService.findProfesores();
+  }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -20,7 +25,11 @@ export class UserController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: any) {
+    // Verificar si el usuario autenticado es ADMIN (solo admins pueden actualizar usuarios)
+    if (req?.user?.rol?.toUpperCase() !== 'ADMIN') {
+      throw new ForbiddenException('Solo administradores pueden actualizar usuarios');
+    }
     return this.userService.update(id, updateUserDto);
   }
 
