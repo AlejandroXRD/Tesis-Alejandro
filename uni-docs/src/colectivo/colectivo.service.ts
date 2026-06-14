@@ -15,7 +15,23 @@ export class ColectivoService {
   }
 
   findAll() {
-    return this.prisma.colectivo.findMany();
+    return this.prisma.colectivo.findMany({
+      include: {
+        profesores: {
+          include: {
+            profesor: {
+              select: {
+                userId: true,
+                userName: true,
+                apellido: true,
+                rol: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
   }
 
   findAllDiurno(){
