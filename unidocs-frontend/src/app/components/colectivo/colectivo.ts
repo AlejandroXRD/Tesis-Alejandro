@@ -16,6 +16,13 @@ interface ProfessorSelection {
   asignatura: string;
 }
 
+interface ProfesorAsignadoView {
+  userId: string;
+  userName: string;
+  apellido?: string;
+  asignatura: string;
+}
+
 @Component({
   selector: 'app-colectivo',
   standalone: true,
@@ -293,6 +300,7 @@ export class ColectivoComponent implements OnInit {
       return;
     }
 
+    // 1) Payload al backend (solo ids + asignatura, como antes)
     const profesoresParaEnviar: ProfessorAsignmentDto[] = profesoresSeleccionados.map(p => ({
       profesorId: p.profesor.userId,
       asignatura: p.asignatura.trim()
@@ -302,10 +310,26 @@ export class ColectivoComponent implements OnInit {
       .updateColectivo(activo.colectivoId, { profesores: profesoresParaEnviar })
       .subscribe({
         next: (colectivo) => {
+          // 2) ✅ Reconstruimos el array de profesores con TODA la info
+          //    (userName, apellido, etc.) cruzada desde todosLosProfesores.
+          //    Esto garantiza que la vista siempre muestre el nombre,
+          //    sin importar lo que devuelva el backend.
+          const profesoresCompletos: ProfesorAsignadoView[] = profesoresSeleccionados.map(p => ({
+            userId: p.profesor.userId,
+            userName: p.profesor.userName,
+            apellido: p.profesor.apellido,
+            asignatura: p.asignatura.trim()
+          }));
+
+          const colectivoActualizado: Colectivo = {
+            ...colectivo,
+            profesores: profesoresCompletos as any
+          };
+
           this.colectivos.update(list =>
-            list.map(c => (c.colectivoId === activo.colectivoId ? colectivo : c))
+            list.map(c => (c.colectivoId === activo.colectivoId ? colectivoActualizado : c))
           );
-          this.colectivoActivo.set(colectivo);
+          this.colectivoActivo.set(colectivoActualizado);
           this.mensaje.set('Profesores asignados correctamente.');
           this.cerrarModalAsignarProfesores();
           this.error.set('');
