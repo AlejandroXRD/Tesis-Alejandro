@@ -35,6 +35,11 @@ export class UsuariosComponent implements OnInit {
   deletingUserId = signal<string | null>(null);
   toasts = signal<Toast[]>([]);
 
+  // Modal de edición
+  editingUser = signal<User | null>(null);
+  editForm = signal<{ userName: string; apellido: string }>({ userName: '', apellido: '' });
+  savingEdit = signal<boolean>(false);
+
   loggedUser = computed(() => this.authService.getUser());
 
   readonly roles: Rol[] = ['ADMIN', 'PPA', 'JEFE_COLECTIVO', 'PROFESOR', 'CLIENTE'];
@@ -55,7 +60,7 @@ export class UsuariosComponent implements OnInit {
   private canSeeUsuarios(): boolean {
     const logged = this.loggedUser();
     let rolRaw = '';
-    
+
     if (logged) {
       if (logged.rol != null) {
         rolRaw = logged.rol;
@@ -106,7 +111,6 @@ export class UsuariosComponent implements OnInit {
         this.usuarios.update(lista =>
           lista.map(u => u.userId === updated.userId ? updated : u)
         );
-        
         this.agregarToast(
           `Rol de ${user.userName} actualizado a ${nuevoRol}`,
           'success'
@@ -137,7 +141,6 @@ export class UsuariosComponent implements OnInit {
         this.usuarios.update(lista =>
           lista.filter(u => u.userId !== user.userId)
         );
-        
         this.agregarToast(
           `Usuario ${user.userName} eliminado correctamente`,
           'success'
@@ -154,13 +157,64 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
+  // ── Modal de edición ──────────────────────────────────────────
+
+  abrirModal(user: User): void {
+    this.editingUser.set({ ...user });
+    this.editForm.set({ userName: user.userName, apellido: user.apellido });
+  }
+
+  cerrarModal(): void {
+    if (this.savingEdit()) return;
+    this.editingUser.set(null);
+    this.editForm.set({ userName: '', apellido: '' });
+  }
+
+  guardarEdicion(): void {
+    const user = this.editingUser();
+    if (!user?.userId) return;
+
+    const { userName, apellido } = this.editForm();
+    if (!userName.trim() || !apellido.trim()) {
+      this.agregarToast('El nombre y apellido no pueden estar vacíos.', 'error');
+      return;
+    }
+
+    this.savingEdit.set(true);
+
+    this.userService.updateUser(user.userId, { userName: userName.trim(), apellido: apellido.trim() }).subscribe({
+      next: (updated) => {
+        this.usuarios.update(lista =>
+          lista.map(u => u.userId === updated.userId ? updated : u)
+        );
+        this.agregarToast(`Usuario ${updated.userName} actualizado correctamente`, 'success');
+        this.savingEdit.set(false);
+        this.cerrarModal();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al actualizar usuario:', err);
+        this.agregarToast('Error al actualizar el usuario. Intenta nuevamente.', 'error');
+        this.savingEdit.set(false);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onModalBackdrop(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-backdrop')) {
+      this.cerrarModal();
+    }
+  }
+
+  // ── Toasts ────────────────────────────────────────────────────
+
   private agregarToast(mensaje: string, tipo: 'success' | 'error'): void {
     const id = Date.now().toString();
     const toast: Toast = { id, mensaje, tipo };
 
     this.toasts.update(lista => [...lista, toast]);
 
-    // Auto-remover después de 4 segundos
     setTimeout(() => {
       this.removerToast(id);
     }, 4000);

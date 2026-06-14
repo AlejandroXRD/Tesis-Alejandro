@@ -32,7 +32,10 @@ export class UserService {
   updateUserRole(userId: string, rol: User['rol']): Observable<User> {
     return this.apiService.patch<User>(`/user/${userId}`, { rol });
   }
-
+  
+  updateUser(userId: string, data: Partial<Pick<User, 'userName' | 'apellido'>>): Observable<User> {
+  return this.apiService.patch<User>(`/user/${userId}`, data);
+}
   deleteUser(userId: string): Observable<void> {
     return this.apiService.delete<void>(`/user/${userId}`);
   }
