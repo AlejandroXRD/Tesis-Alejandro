@@ -165,7 +165,8 @@ export class ColectivoComponent implements OnInit {
   }
 
   seleccionarColectivo(id: string): void {
-    const encontrado = this.colectivosFiltrados().find(c => c.colectivoId === id) ?? null;
+    // Buscar en la lista completa cargada del curso para no depender del filtro de año.
+    const encontrado = this.colectivos().find(c => c.colectivoId === id) ?? null;
     this.colectivoActivo.set(encontrado);
     this.mensaje.set('');
   }
@@ -386,8 +387,8 @@ export class ColectivoComponent implements OnInit {
       });
   }
 
-      onPageChange(event: PaginatorState) {
-        this.first.set(event.first ?? 0);
-        this.rows.set(event.rows ?? 5);
-    }
+  onPageChange(event: PaginatorState) {
+    this.first.set(event.first ?? 0);
+    this.rows.set(event.rows ?? 5);
+  }
 }

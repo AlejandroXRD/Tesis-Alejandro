@@ -1,7 +1,3 @@
-- [ ] Update: unidocs-frontend/src/app/pages/login/login.component.ts
-  - [ ] Limpiar errorMessage antes de enviar
-  - [ ] Manejar errores robustamente (401, status ausente, mensajes del backend)
-- [ ] Update: unidocs-frontend/src/app/services/auth.service.ts
-  - [ ] Remover hardcode de apiUrl usando environment.apiUrl
-- [x] Test manual
-  - [ ] Intentar login con credenciales incorrectas y verificar que muestra el error inmediatamente
+- [ ] Reescribir `uni-docs/src/colectivo/colectivo.service.ts` para corregir el método `update()` (bug de código duplicado/return prematuro) e implementar correctamente la actualización y reasignación de profesores.
+- [ ] Actualizar `unidocs-frontend/src/app/components/colectivo/colectivo.html` para ocultar botones de acciones (Crear, Editar, Eliminar y Asignar Profesor) para roles **Nuevo usuario, PPA y Profesor**, mostrando solo para **ADMIN/DECANO_VICEDECANO/JEFE_DEPARTAMENTO**.
+- [ ] Validar funcionamiento: asignación de profesores y UI con roles distintos (frontend y backend).

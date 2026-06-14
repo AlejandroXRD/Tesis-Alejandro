@@ -117,7 +117,7 @@ export class CrearTareaComponent implements OnInit {
         this.resetForm();
         // Optional: redirect after success
         setTimeout(() => {
-          this.router.navigate(['/colectivos']);
+          this.router.navigate(['/tareas']);
         }, 1500);
       },
       error: (error) => {
