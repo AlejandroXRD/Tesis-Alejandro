@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ColectivoService, Colectivo } from '../../services/colectivo.service';
 import { ReporteService, ReporteColectivo } from '../../services/reporte.service';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import * as XLSX from 'xlsx';
 
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
@@ -149,8 +150,103 @@ export class ReporteComponent implements OnInit {
   }
 
   exportarExcel(): void {
-    // TODO: implementar exportación a Excel
-    console.log('Exportar a Excel — próximamente');
+    const reporte = this.reporte();
+    if (!reporte) return;
+
+    const resumen = this.tareasResumen();
+    const workbook = XLSX.utils.book_new();
+
+    // ═══════════════════════════════════════════════
+    // HOJA 1 — Resumen del colectivo
+    // ═══════════════════════════════════════════════
+    const filasResumen: (string | number)[][] = [
+      ['REPORTE DE COLECTIVO ACADÉMICO'],
+      [reporte.colectivo.nombre],
+      [`Generado el ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
+      [],
+      ['DATOS DEL COLECTIVO', ''],
+      ['Nombre del colectivo',    reporte.colectivo.nombre],
+      ['Año académico',           `${reporte.colectivo.año}° año`],
+      ['Modalidad',               reporte.colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Por Encuentros'],
+      ['Cantidad de profesores',  reporte.colectivo.cantidadProfesores],
+      [],
+      ['RESUMEN DE TAREAS', ''],
+      ['Total de tareas',   resumen.total],
+      ['Completadas',       resumen.completadas],
+      ['Pendientes',        resumen.pendientes],
+      ['Vencidas',          resumen.vencidas],
+    ];
+
+    const wsResumen = XLSX.utils.aoa_to_sheet(filasResumen);
+
+    // Ancho de columnas
+    wsResumen['!cols'] = [{ wch: 30 }, { wch: 40 }];
+
+    // Merge del título, subtítulo y fecha
+    wsResumen['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, wsResumen, 'Resumen');
+
+    // ═══════════════════════════════════════════════
+    // HOJA 2 — Profesores y tareas
+    // ═══════════════════════════════════════════════
+    const cabecera = [
+      'Nombre', 'Apellido', 'Rol', 'Asignatura',
+      'Tarea', 'Descripción', 'Fecha límite', 'Estado',
+    ];
+
+    const filasProfesores: (string)[][] = [cabecera];
+
+    reporte.profesores.forEach((prof) => {
+      if (prof.tareas.length === 0) {
+        filasProfesores.push([
+          prof.nombre,
+          prof.apellido ?? '',
+          prof.rol,
+          prof.asignatura,
+          '— Sin tareas —', '', '', '',
+        ]);
+        return;
+      }
+
+      prof.tareas.forEach((tarea, tIdx) => {
+        filasProfesores.push([
+          tIdx === 0 ? prof.nombre        : '',
+          tIdx === 0 ? (prof.apellido ?? '') : '',
+          tIdx === 0 ? prof.rol           : '',
+          tIdx === 0 ? prof.asignatura    : '',
+          tarea.nombreTarea,
+          tarea.descripcion,
+          new Date(tarea.fechaLimite).toLocaleDateString('es-ES'),
+          this.estadoLabel(tarea.estado),
+        ]);
+      });
+    });
+
+    const wsProfesores = XLSX.utils.aoa_to_sheet(filasProfesores);
+
+    wsProfesores['!cols'] = [
+      { wch: 22 }, // Nombre
+      { wch: 18 }, // Apellido
+      { wch: 22 }, // Rol
+      { wch: 24 }, // Asignatura
+      { wch: 28 }, // Tarea
+      { wch: 40 }, // Descripción
+      { wch: 16 }, // Fecha límite
+      { wch: 14 }, // Estado
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, wsProfesores, 'Profesores y Tareas');
+
+    // ─────────────────────────────────────────────
+    // Descargar
+    // ─────────────────────────────────────────────
+    const nombreArchivo = `Reporte_${reporte.colectivo.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, nombreArchivo);
   }
 
   estadoClass(estado: string): string {
