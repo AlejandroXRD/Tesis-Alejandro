@@ -8,6 +8,8 @@ import {
   ProfessorAsignmentDto
 } from '../../services/colectivo.service';
 
+
+
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
 interface ProfessorSelection {
@@ -35,6 +37,8 @@ export class ColectivoComponent implements OnInit {
   private readonly rolesPermitidos = new Set(['ADMIN', 'DECANO_VICEDECANO', 'JEFE_DEPARTAMENTO']);
 
   puedeGestionarColectivos = signal<boolean>(false);
+
+  private debugPermisosEnabled = true;
 
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
 
@@ -67,12 +71,27 @@ export class ColectivoComponent implements OnInit {
   colectivosFiltrados = computed(() => {
     const curso = this.cursoSeleccionado();
     if (!curso) return [];
-    return this.colectivos().filter(c => c.modalidad === curso);
+
+    const lista = this.colectivos().filter(c => c.modalidad === curso);
+
+    // Si NO puede gestionar, mostrar solo colectivos en los que el usuario (profesor) está asignado.
+    if (!this.puedeGestionarColectivos()) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      const userId: string | null = user?.userId ?? user?.id ?? null;
+      if (!userId) return [];
+
+      return lista.filter(c => (c.profesores ?? []).some(p => p.userId === userId));
+    }
+
+    // ✅ ADMIN/DECANO/JEFE: mostrar todos los colectivos del curso
+    return lista;
   });
+
 
   constructor(private colectivoService: ColectivoService) {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    const rol = (user?.rol ?? '').toString().toUpperCase();
+    const rolRaw = (user?.rol ?? '').toString();
+    const rol = rolRaw.toUpperCase().replace(/\s+/g, '_').trim();
     this.puedeGestionarColectivos.set(this.rolesPermitidos.has(rol));
   }
 
@@ -109,7 +128,12 @@ export class ColectivoComponent implements OnInit {
     servicio$.subscribe({
       next: (datos) => {
         this.colectivos.set(datos);
-        this.colectivoActivo.set(datos[0] ?? null);
+
+        // Seleccionar primer colectivo permitido si aplica.
+        const filtrados = this.colectivosFiltrados();
+
+        this.colectivoActivo.set(filtrados[0] ?? datos[0] ?? null);
+
         this.mensaje.set('');
         this.cargando.set(false);
       },
