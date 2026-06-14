@@ -112,7 +112,7 @@ export class RegisterComponent {
       userName: this.credentials.nombre.trim(),
       apellido: this.credentials.apellidos.trim(),
       password: this.credentials.password,
-      rol: 'CLIENTE'
+      rol: 'NUEVO_USUARIO'
     };
 
     this.authService.register(payload).subscribe({

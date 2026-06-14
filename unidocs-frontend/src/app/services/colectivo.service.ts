@@ -8,6 +8,7 @@ export interface Profesor {
   userName: string;
   apellido: string;
   asignatura: string;
+  rol: string;  // ← añadir esto
 }
 
 export interface ProfessorAsignmentDto {
@@ -21,7 +22,7 @@ export interface Colectivo {
   year: number;
   modalidad: 'DIURNO' | 'ENCUENTRO';
   createdAt: string;
-  profesores?: Profesor[];
+  profesores: Profesor[];
 }
 
 export interface CreateColectivoRequest {

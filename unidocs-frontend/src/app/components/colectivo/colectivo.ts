@@ -15,10 +15,8 @@ interface ProfessorSelection {
   selector: 'app-colectivo',
   standalone: true,
   imports: [CommonModule, FormsModule],
-
   templateUrl: './colectivo.html',
   styleUrl: './colectivo.css'
-
 })
 export class ColectivoComponent implements OnInit {
   readonly opcionesAnioAcademico = [1, 2, 3, 4, 5];
@@ -34,7 +32,7 @@ export class ColectivoComponent implements OnInit {
   modalAbierto = signal<boolean>(false);
   modoModal = signal<'crear' | 'editar'>('crear');
   colectivoEditandoId: string | null = null;
-  
+
   // Profesores
   modalAsignarAbierto = signal<boolean>(false);
   profesoresDisponibles = signal<ProfessorSelection[]>([]);
@@ -44,11 +42,11 @@ export class ColectivoComponent implements OnInit {
   private colectivos = signal<Colectivo[]>([]);
   private todosLosProfesores: Profesor[] = [];
 
-  // Formulario local (mantenemos objeto para compatibilidad directa con ngModel)
+  // Formulario local
   form = { nombreColectivo: '', year: null as number | null };
   errores = signal<Record<string, string>>({});
 
-  // 🧠 Filtro reactivo optimizado con Computed (se actualiza solo si cambian los colectivos o el curso)
+  // 🧠 Filtro reactivo optimizado con Computed
   colectivosFiltrados = computed(() => {
     const curso = this.cursoSeleccionado();
     if (!curso) return [];
@@ -80,10 +78,10 @@ export class ColectivoComponent implements OnInit {
     this.cursoSeleccionado.set(curso);
     this.error.set('');
     this.colectivoActivo.set(null);
-    this.cargando.set(true); // Ahora el estado de carga reaccionará de inmediato
+    this.cargando.set(true);
 
-    const servicio$ = curso === 'DIURNO' 
-      ? this.colectivoService.getAllDiurno() 
+    const servicio$ = curso === 'DIURNO'
+      ? this.colectivoService.getAllDiurno()
       : this.colectivoService.getAllEncuentro();
 
     servicio$.subscribe({
@@ -91,7 +89,7 @@ export class ColectivoComponent implements OnInit {
         this.colectivos.set(datos);
         this.colectivoActivo.set(datos[0] ?? null);
         this.mensaje.set('');
-        this.cargando.set(false); // La UI se enterará al instante
+        this.cargando.set(false);
       },
       error: (err) => {
         console.error('Error al cargar colectivos:', err);
@@ -126,7 +124,7 @@ export class ColectivoComponent implements OnInit {
   editarColectivo(): void {
     const activo = this.colectivoActivo();
     if (!activo) return;
-    
+
     this.modoModal.set('editar');
     this.colectivoEditandoId = activo.colectivoId;
     this.form = {
@@ -262,6 +260,20 @@ export class ColectivoComponent implements OnInit {
     this.profesoresDisponibles.set([]);
   }
 
+  toggleProfesor(index: number): void {
+    this.profesoresDisponibles.update(list => {
+      const copia = [...list];
+      copia[index] = {
+        ...copia[index],
+        seleccionado: !copia[index].seleccionado,
+        asignatura: !copia[index].seleccionado ? copia[index].asignatura : ''
+      };
+      return copia;
+    });
+  }
+
+
+
   guardarProfesoresAsignados(): void {
     const activo = this.colectivoActivo();
     if (!activo) return;
@@ -289,18 +301,6 @@ export class ColectivoComponent implements OnInit {
         console.error('Error al asignar profesores:', err);
         this.error.set('Error al asignar profesores. Intente nuevamente.');
       }
-    });
-  }
-
-  toggleProfesor(index: number): void {
-    this.profesoresDisponibles.update(list => {
-      const copia = [...list];
-      copia[index] = {
-        ...copia[index],
-        seleccionado: !copia[index].seleccionado,
-        asignatura: !copia[index].seleccionado ? '' : copia[index].asignatura
-      };
-      return copia;
     });
   }
 }

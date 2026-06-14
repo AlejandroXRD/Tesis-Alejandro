@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
@@ -66,14 +67,20 @@ export class ApiService {
   }
 
   delete<T>(endpoint: string): Observable<T> {
-    const url = `${this.apiUrl}${endpoint}`;
-    console.log(`🗑️ DELETE: ${url}`);
-    
-    return this.http.delete<T>(url, { headers: this.getHeaders() }).pipe(
-      catchError(error => {
-        console.error(`❌ Error en DELETE ${endpoint}:`, error);
-        return throwError(() => error);
-      })
-    );
-  }
+  const url = `${this.apiUrl}${endpoint}`;
+  console.log(`🗑️ DELETE: ${url}`);
+  
+  return this.http.delete(url, { 
+    headers: this.getHeaders(),
+    responseType: 'text'          // ← acepta texto plano
+  }).pipe(
+    map(() => ({} as T)),         // ← convierte la respuesta a objeto vacío
+    catchError(error => {
+      console.error(`❌ Error en DELETE ${endpoint}:`, error);
+      console.error(`❌ Status: ${error.status}`);
+      console.error(`❌ Body:`, error.error);
+      return throwError(() => error);
+    })
+  );
+}
 }

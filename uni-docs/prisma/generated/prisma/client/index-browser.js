@@ -168,10 +168,12 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 exports.Rol = exports.$Enums.Rol = {
-  ADMIN: 'ADMIN',
+  ADMIN: 'Administrador',
+  DECANO_VICEDECANO: 'Decano-Vice Decano',
+  JEFE_DEPARTAMENTO: 'Jefe de Departamento',
   PPA: 'PPA',
-  JEFE_COLECTIVO: 'JEFE_COLECTIVO',
-  PROFESOR: 'PROFESOR'
+  PROFESOR: 'Profesor',
+  NUEVO_USUARIO: 'Nuevo Usuario'
 };
 
 exports.Modalidad = exports.$Enums.Modalidad = {

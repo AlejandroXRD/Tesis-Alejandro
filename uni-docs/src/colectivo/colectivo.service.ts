@@ -50,8 +50,8 @@ export class ColectivoService {
 
     // Preparar datos para actualizar
     const updateData: any = {}
-    if(updateColectivoDto.nombreColecivo) {
-      updateData.nombreColectivo = updateColectivoDto.nombreColecivo
+    if(updateColectivoDto.nombreColectivo) {
+      updateData.nombreColectivo = updateColectivoDto.nombreColectivo
     }
     if(updateColectivoDto.year) {
       updateData.year = updateColectivoDto.year
@@ -80,7 +80,19 @@ export class ColectivoService {
     })
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} colectivo`;
+  async remove(id: string) {
+  const colectivoExist = await this.prisma.colectivo.findUnique({
+    where: { colectivoId: id }
+  });
+  if (!colectivoExist) throw new NotFoundException('Este colectivo no existe');
+
+  // Primero eliminar las relaciones de profesores (foreign key)
+  await this.prisma.colectivoProfesor.deleteMany({
+    where: { colectivoId: id }
+  });
+
+  return this.prisma.colectivo.delete({
+    where: { colectivoId: id }
+  });
   }
 }

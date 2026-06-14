@@ -184,5 +184,17 @@ export class UserService {
     where: { userName }
   });
   }
-
+  findProfesores() {
+  return this.prisma.user.findMany({
+    where: {
+      rol: { in: [Rol.PROFESOR, Rol.PPA] }
+    },
+    select: {
+      userId: true,
+      userName: true,
+      apellido: true,
+      rol: true,
+    }
+  });
+}
 }

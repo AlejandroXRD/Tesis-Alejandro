@@ -42,7 +42,7 @@ export class UsuariosComponent implements OnInit {
 
   loggedUser = computed(() => this.authService.getUser());
 
-  readonly roles: Rol[] = ['ADMIN', 'PPA', 'JEFE_COLECTIVO', 'PROFESOR', 'CLIENTE'];
+  readonly roles: Rol[] = ['ADMIN', 'DECANO_VICEDECANO', 'JEFE_DEPARTAMENTO', 'PPA', 'PROFESOR', 'NUEVO_USUARIO'];
 
   ngOnInit(): void {
     const canSee = this.canSeeUsuarios();
