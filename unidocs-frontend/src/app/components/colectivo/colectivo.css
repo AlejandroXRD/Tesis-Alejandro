@@ -605,6 +605,12 @@
       font-weight: 600;
     }
 
+    .form-row{
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
     .form-input[disabled] {
       opacity: 0.65;
       cursor: not-allowed;

@@ -1,4 +1,4 @@
-import { Modalidad } from '@prisma/client'
+import { Modalidad, Periodo } from '@prisma/client'
 import { IsEnum, IsInt, IsNotEmpty, IsString } from 'class-validator'
 
 export class CreateColectivoDto {
@@ -14,4 +14,8 @@ export class CreateColectivoDto {
     @IsEnum(Modalidad)
     @IsNotEmpty()
     modalidad : Modalidad
+
+    @IsNotEmpty()
+    @IsEnum(Periodo)
+    periodo : Periodo
 }

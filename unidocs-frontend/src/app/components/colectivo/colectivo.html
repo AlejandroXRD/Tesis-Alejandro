@@ -1,5 +1,6 @@
 <div class="colectivo-page container">
 
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
   <header class="page-header">
     <div class="header-inner">
       <span class="eyebrow">
@@ -21,6 +22,7 @@
     <div class="header-deco" aria-hidden="true"></div>
   </header>
 
+  <!-- ═══════════════════ SELECCIÓN DE CURSO ═══════════════════ -->
   <div class="selection-grid" *ngIf="!cursoSeleccionado()">
     <button type="button" class="course-card course-diurno" (click)="seleccionarCurso('DIURNO')">
       <div class="course-icon course-icon--diurno">
@@ -60,39 +62,21 @@
     </button>
   </div>
 
+  <!-- ═══════════════════ WORKSPACE ═══════════════════ -->
   <div class="colectivo-workspace" *ngIf="cursoSeleccionado()">
+
     <div class="toolbar">
       <div class="toolbar-group">
-        <button
-          *ngIf="puedeGestionarColectivos()"
-          type="button"
-          class="btn btn--primary"
-          (click)="abrirModal()"
-        >
+        <button *ngIf="puedeGestionarColectivos()" type="button" class="btn btn--primary" (click)="abrirModal()">
           Crear Colectivo
         </button>
-
-        <button
-          *ngIf="puedeGestionarColectivos()"
-          type="button"
-          class="btn btn--secondary"
-          (click)="editarColectivo()"
-          [disabled]="!colectivoActivo()"
-        >
+        <button *ngIf="puedeGestionarColectivos()" type="button" class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo()">
           Editar
         </button>
-
-        <button
-          *ngIf="puedeGestionarColectivos()"
-          type="button"
-          class="btn btn--danger"
-          (click)="eliminarColectivo()"
-          [disabled]="!colectivoActivo()"
-        >
+        <button *ngIf="puedeGestionarColectivos()" type="button" class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo()">
           Eliminar
         </button>
-
-        <select (change)="filterByYear($event)" name="Filtrar por año" id="">
+        <select (change)="filterByYear($event)" name="Filtrar por año">
           <option value="0">Ver todos</option>
           <option value="1">1er año</option>
           <option value="2">2do año</option>
@@ -105,7 +89,7 @@
     </div>
 
     <div class="status-message status-message--success" *ngIf="mensaje()">{{ mensaje() }}</div>
-    <div class="status-message status-message--error" *ngIf="error()">{{ error() }}</div>
+    <div class="status-message status-message--error"   *ngIf="error()">{{ error() }}</div>
 
     <div *ngIf="cargando()" class="loading-state">
       <p>Cargando colectivos...</p>
@@ -113,6 +97,7 @@
 
     <div class="content-grid" *ngIf="!cargando()">
 
+      <!-- Lista -->
       <section class="panel list-panel">
         <div class="panel-header">
           <h2>Colectivos</h2>
@@ -131,10 +116,12 @@
                 <div class="card-content">
                   <strong class="card-nombre">{{ colectivo.nombreColectivo }}</strong>
                   <p class="card-desc">Creado: {{ colectivo.createdAt | date:'short' }}</p>
-
                   <div class="card-meta">
                     <span class="meta-chip">{{ colectivo.profesores?.length ?? 0 }} profesores</span>
                     <span class="meta-chip meta-chip--primary">{{ colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
+                    <span class="meta-chip meta-chip--periodo" *ngIf="$any(colectivo).periodo">
+                      {{ periodoLabel($any(colectivo).periodo) }}
+                    </span>
                   </div>
                 </div>
               </button>
@@ -144,18 +131,16 @@
           <ng-template #emptyState>
             <div class="empty-state">
               <p>No hay colectivos para este curso.</p>
-              <button
-                *ngIf="puedeGestionarColectivos()"
-                type="button"
-                class="btn btn--primary"
-                (click)="abrirModal()"
-              >Crear primero</button>
+              <button *ngIf="puedeGestionarColectivos()" type="button" class="btn btn--primary" (click)="abrirModal()">
+                Crear primero
+              </button>
             </div>
           </ng-template>
         </div>
         <p-paginator (onPageChange)="onPageChange($event)" [first]="first()" [rows]="rows()" [totalRecords]="colectivosFiltrados().length" />
       </section>
 
+      <!-- Detalle -->
       <aside class="panel detail-panel" *ngIf="colectivoActivo()">
         <div class="panel-body">
           <div class="detail-year-badge">{{ colectivoActivo()?.year }}° año académico</div>
@@ -171,6 +156,18 @@
             <div class="detail-row">
               <dt>Año académico</dt>
               <dd>{{ colectivoActivo()?.year }}°</dd>
+            </div>
+            <div class="detail-row" *ngIf="periodoActivo">
+              <dt>Período</dt>
+              <dd>
+                <span
+                  class="periodo-badge"
+                  [class.periodo-badge--primero]="periodoActivo === 'PRIMERO'"
+                  [class.periodo-badge--segundo]="periodoActivo === 'SEGUNDO'"
+                >
+                  {{ periodoLabel(periodoActivo) }}
+                </span>
+              </dd>
             </div>
             <div class="detail-row">
               <dt>Profesores asignados</dt>
@@ -193,12 +190,9 @@
           </dl>
 
           <div class="detail-actions" style="margin-top:1rem;">
-            <button
-              *ngIf="puedeGestionarColectivos()"
-              type="button"
-              class="btn btn--secondary"
-              (click)="abrirModalAsignarProfesores()"
-            >Asignar Profesor</button>
+            <button *ngIf="puedeGestionarColectivos()" type="button" class="btn btn--secondary" (click)="abrirModalAsignarProfesores()">
+              Asignar Profesor
+            </button>
           </div>
         </div>
       </aside>
@@ -206,29 +200,85 @@
     </div>
   </div>
 
-  <!-- Modal Crear/Editar Colectivo -->
+  <!-- ═══════════════════ MODAL CREAR / EDITAR ═══════════════════ -->
   <div class="modal-backdrop" *ngIf="modalAbierto()" (click)="cerrarModal()" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <div class="modal" (click)="$event.stopPropagation()">
+
       <div class="modal-header">
         <h2 id="modal-title">{{ modoModal() === 'crear' ? 'Nuevo Colectivo' : 'Editar Colectivo' }}</h2>
-        <button type="button" class="modal-close" (click)="cerrarModal()">X</button>
+        <button type="button" class="modal-close" (click)="cerrarModal()" aria-label="Cerrar">✕</button>
       </div>
 
       <div class="modal-body">
+
+        <!-- Nombre -->
         <div class="form-group">
-          <label for="nombreColectivo">Nombre del colectivo</label>
-          <input id="nombreColectivo" type="text" class="form-input" [(ngModel)]="form.nombreColectivo" (ngModelChange)="limpiarError('nombreColectivo')" />
-          <span class="form-error" *ngIf="errores()['nombreColectivo']">{{ errores()['nombreColectivo'] }}</span>
+          <label class="form-label" for="nombreColectivo">
+            Nombre del colectivo <span class="form-required">*</span>
+          </label>
+          <input
+            id="nombreColectivo"
+            type="text"
+            class="form-input"
+            [class.form-input--error]="errores()['nombreColectivo']"
+            [(ngModel)]="form.nombreColectivo"
+            (ngModelChange)="limpiarError('nombreColectivo')"
+            placeholder="Ej: Colectivo Matemáticas A"
+          />
+          <span class="form-error" *ngIf="errores()['nombreColectivo']">
+            {{ errores()['nombreColectivo'] }}
+          </span>
         </div>
 
-        <div class="form-group">
-          <label for="year">Año académico</label>
-          <select id="year" class="form-input" [(ngModel)]="form.year" (ngModelChange)="limpiarError('year')">
-            <option [ngValue]="null" disabled>Selecciona un año académico</option>
-            <option *ngFor="let anio of opcionesAnioAcademico" [ngValue]="anio">{{ anio }}° año</option>
-          </select>
-          <span class="form-error" *ngIf="errores()['year']">{{ errores()['year'] }}</span>
+        <!-- Fila: Año + Período -->
+        <div class="form-row">
+
+          <!-- Año académico -->
+          <div class="form-group">
+            <label class="form-label" for="year">
+              Año académico <span class="form-required">*</span>
+            </label>
+            <select
+              id="year"
+              class="form-input"
+              [class.form-input--error]="errores()['year']"
+              [(ngModel)]="form.year"
+              (ngModelChange)="limpiarError('year')"
+            >
+              <option [ngValue]="null" disabled>Selecciona un año</option>
+              <option *ngFor="let anio of opcionesAnioAcademico" [ngValue]="anio">{{ anio }}° año</option>
+            </select>
+            <span class="form-error" *ngIf="errores()['year']">{{ errores()['year'] }}</span>
+          </div>
+
+          <!-- Período -->
+          <div class="form-group">
+            <label class="form-label" for="periodo">
+              Período académico <span class="form-required">*</span>
+            </label>
+            <select
+              id="periodo"
+              class="form-input"
+              [class.form-input--error]="errores()['periodo']"
+              [(ngModel)]="form.periodo"
+              (ngModelChange)="limpiarError('periodo')"
+            >
+              <option [ngValue]="null" disabled>Selecciona un período</option>
+              <option *ngFor="let op of opcionesPeriodo" [ngValue]="op.valor">{{ op.label }}</option>
+            </select>
+            <span class="form-error" *ngIf="errores()['periodo']">{{ errores()['periodo'] }}</span>
+          </div>
+
         </div>
+
+        <!-- Indicador del curso (solo lectura, informativo) -->
+        <div class="form-info-row">
+          <span class="form-info-label">Modalidad del curso:</span>
+          <span class="meta-chip meta-chip--primary">
+            {{ cursoSeleccionado() === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}
+          </span>
+        </div>
+
       </div>
 
       <div class="modal-footer">
@@ -237,12 +287,14 @@
           {{ modoModal() === 'crear' ? 'Crear Colectivo' : 'Guardar Cambios' }}
         </button>
       </div>
+
     </div>
   </div>
 
-  <!-- Modal Asignar Profesores -->
+  <!-- ═══════════════════ MODAL ASIGNAR PROFESORES ═══════════════════ -->
   <div class="modal-backdrop" *ngIf="modalAsignarAbierto()" (click)="cerrarModalAsignarProfesores()" role="dialog" aria-modal="true" aria-labelledby="modal-asignar-title">
     <div class="modal" (click)="$event.stopPropagation()">
+
       <div class="modal-header">
         <h2 id="modal-asignar-title">Asignar Profesores</h2>
         <button type="button" class="modal-close modal-close--icon" (click)="cerrarModalAsignarProfesores()" aria-label="Cerrar">
@@ -260,17 +312,11 @@
         <div *ngIf="!cargandoProfesores() && profesoresDisponibles().length > 0">
           <div class="prof-list">
             <div class="prof-row" *ngFor="let item of profesoresDisponibles(); let i = index">
-
               <label class="prof-label">
-                <input
-                  type="checkbox"
-                  [checked]="item.seleccionado"
-                  (change)="toggleProfesor(i)"
-                />
+                <input type="checkbox" [checked]="item.seleccionado" (change)="toggleProfesor(i)" />
                 {{ item.profesor.userName }} {{ item.profesor.apellido }}
-                <span class="meta-chip" style="margin-left: 0.4rem; font-size: 0.7rem;">{{ item.profesor.rol }}</span>
+                <span class="meta-chip" style="margin-left:0.4rem;font-size:0.7rem;">{{ item.profesor.rol }}</span>
               </label>
-
               <input
                 class="form-input"
                 placeholder="Asignatura"
@@ -278,7 +324,6 @@
                 [disabled]="!item.seleccionado"
                 name="asignatura-{{ i }}"
               />
-
             </div>
           </div>
         </div>
@@ -288,6 +333,7 @@
         <button type="button" class="btn btn--ghost" (click)="cerrarModalAsignarProfesores()">Cancelar</button>
         <button type="button" class="btn btn--primary" (click)="guardarProfesoresAsignados()">Guardar asignaciones</button>
       </div>
+
     </div>
   </div>
 

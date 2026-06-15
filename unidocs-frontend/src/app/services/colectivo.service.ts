@@ -22,6 +22,7 @@ export interface Colectivo {
   nombreColectivo: string;
   year: number;
   modalidad: 'DIURNO' | 'ENCUENTRO';
+  periodo: 'PRIMERO' | 'SEGUNDO';
   createdAt: string;
   profesores?: Profesor[];
 }
