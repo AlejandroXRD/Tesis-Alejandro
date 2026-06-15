@@ -7,9 +7,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000'; // Ajusta esto a tu URL del backend (sin slash final para evitar //auth/*)
+  private apiUrl = 'http://localhost:3000';
   
-  // Signals para el estado
   private isAuthenticatedSignal = signal<boolean>(this.hasToken());
   public isAuthenticated = this.isAuthenticatedSignal.asReadonly();
 
@@ -47,19 +46,12 @@ export class AuthService {
   }
 
   // ==================== MÉTODOS DE AUTENTICACIÓN ====================
-  /**
-   * Login - Acepta payload completo o email + password
-   * Compatible con login.component.ts
-   */
   login(emailOrPayload: string | any, password?: string): Observable<any> {
     let payload;
     
-    // Si recibe un objeto (payload completo)
     if (typeof emailOrPayload === 'object') {
       payload = emailOrPayload;
-    } 
-    // Si recibe string + string (email, password)
-    else {
+    } else {
       payload = {
         email: emailOrPayload,
         password: password
@@ -69,20 +61,12 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/login`, payload);
   }
 
-  /**
-   * Register - Acepta payload completo o email + password
-   * Compatible con register.component.ts
-   */
-  
   register(emailOrPayload: string | any, password?: string): Observable<any> {
     let payload;
     
-    // Si recibe un objeto (payload completo)
     if (typeof emailOrPayload === 'object') {
       payload = emailOrPayload;
-    } 
-    // Si recibe string + string (email, password)
-    else {
+    } else {
       payload = {
         email: emailOrPayload,
         password: password
@@ -91,14 +75,7 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/auth/register`, payload);
   }
 
-  /**
-   * Logout
-   * Limpia token, usuario y actualiza el estado
-   */
   logout(): void {
-    // Aquí puedes hacer una llamada al backend si lo necesitas
-    // this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe();
-    
     this.removeToken();
     this.removeUser();
     this.isAuthenticatedSignal.set(false);
@@ -121,10 +98,24 @@ export class AuthService {
     return user?.email || '';
   }
 
-  // ==================== VERIFICAR TOKEN ====================
+  // ==================== ✨ NUEVOS MÉTODOS PARA ESPACIO-TRABAJO ====================
   /**
-   * Verifica si el token es válido con el backend (opcional)
+   * Obtiene el usuario actual desde localStorage
+   * (Alias de getUser() para compatibilidad con espacio-trabajo)
    */
+  getCurrentUser(): any {
+    return this.getUser();
+  }
+
+  /**
+   * Obtiene el rol del usuario actual
+   */
+  getUserRole(): string | null {
+    const user = this.getUser();
+    return user?.role || null;
+  }
+
+  // ==================== VERIFICAR TOKEN ====================
   verifyToken(): Observable<any> {
     return this.http.get(`${this.apiUrl}/auth/verify`);
   }

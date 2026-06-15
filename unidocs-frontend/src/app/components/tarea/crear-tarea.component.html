@@ -93,7 +93,7 @@
                 >
                   <option value="">Selecciona un profesor</option>
                   <option *ngFor="let profesor of profesores" [value]="profesor.userId">
-                    {{ profesor.userName }} - {{ profesor.apellido }}
+                    {{ profesor.userName }} {{ profesor.apellido }}
                   </option>
                 </select>
                 <span class="form-hint">Selecciona el profesor responsable de la tarea</span>

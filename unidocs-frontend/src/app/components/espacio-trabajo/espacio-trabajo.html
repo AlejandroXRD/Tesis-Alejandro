@@ -1,0 +1,133 @@
+<div class="espacio-trabajo-container">
+  <header class="header">
+    <div class="header-content">
+      <h1>Espacio de Trabajo</h1>
+      <p>Sistema de Gestión Documental - UniDocs</p>
+    </div>
+    <button class="btn-back" (click)="goHome()">← Volver al inicio</button>
+  </header>
+
+  <main class="workspace-content">
+    <!-- Primera fila: Secciones principales -->
+    <div class="section-title">
+      <h2>Módulos Principales</h2>
+    </div>
+    
+    <div class="features-grid">
+      <div class="feature-card" (click)="goToSection('colectivos')">
+        <div class="feature-icon"><img src="/colectivos.svg" alt="Colectivos" class="colectivos" /></div>
+        <h3>Colectivos</h3>
+        <p>Gestiona grupos de profesores y asignaturas de forma organizada</p>
+      </div>
+
+      <div class="feature-card" (click)="goToSection('tareas')">
+        <div class="feature-icon"><img src="/tareas.svg" alt="Tareas" class="tareas" /></div>
+        <h3>Tareas</h3>
+        <p>Asigna y monitorea tareas de los colectivos de año</p>
+      </div>
+
+      <div class="feature-card" (click)="goToSection('usuarios')">
+        <div class="feature-icon"><img src="/usuarios.svg" alt="Usuarios" class="usuarios" /></div>
+        <h3>Usuarios</h3>
+        <p>Administra perfiles y roles de usuarios</p>
+      </div>
+
+      <div class="feature-card" (click)="goToSection('reportes')">
+        <div class="feature-icon"><img src="/reportes.svg" alt="Reportes" class="reportes" /></div>
+        <h3>Reportes</h3>
+        <p>Genera reportes detallados de actividades</p>
+      </div>
+    </div>
+
+    <!-- Segunda fila: Documentos especializados -->
+    <div class="section-title">
+      <h2>Documentos y Recursos</h2>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card" (click)="openDocuments('graficos')">
+        <div class="feature-icon">📊</div>
+        <h3>Gráficos Docentes</h3>
+        <p>Accede a los gráficos y estadísticas de desempeño docente</p>
+        <span class="file-count" *ngIf="filesCounts['graficos'] > 0">{{ filesCounts['graficos'] }} archivo(s)</span>
+      </div>
+
+      <div class="feature-card" (click)="openDocuments('modelos')">
+        <div class="feature-icon">📋</div>
+        <h3>Modelos de Trabajo</h3>
+        <p>Consulta los modelos y plantillas de trabajo disponibles</p>
+        <span class="file-count" *ngIf="filesCounts['modelos'] > 0">{{ filesCounts['modelos'] }} archivo(s)</span>
+      </div>
+
+      <div class="feature-card" (click)="openDocuments('planificacion')">
+        <div class="feature-icon">📅</div>
+        <h3>Planificación</h3>
+        <p>Revisa los planes y calendarios académicos</p>
+        <span class="file-count" *ngIf="filesCounts['planificacion'] > 0">{{ filesCounts['planificacion'] }} archivo(s)</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal de archivos -->
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ getModalTitle() }}</h2>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Si el usuario es Decano o Vicedecano, mostrar opción de subir -->
+        <div class="upload-section" *ngIf="canUploadFiles()">
+          <button class="btn-upload" (click)="triggerUpload()">
+            + Subir Archivo
+          </button>
+          <input 
+            type="file" 
+            #fileInput 
+            (change)="uploadFile($event)" 
+            style="display: none"
+            multiple
+          />
+        </div>
+
+        <!-- Lista de archivos -->
+        <div class="files-list" *ngIf="currentFiles.length > 0; else noFiles">
+          <div class="file-item" *ngFor="let file of currentFiles">
+            <div class="file-icon">
+              {{ getFileIcon(file.name) }}
+            </div>
+            <div class="file-info">
+              <p class="file-name">{{ file.name }}</p>
+              <p class="file-date">{{ formatDate(file.uploadedAt) }}</p>
+            </div>
+            <div class="file-actions">
+              <button class="btn-download" (click)="downloadFile(file)">
+                ⬇ Descargar
+              </button>
+              <button 
+                class="btn-delete" 
+                (click)="deleteFile(file.id)"
+                *ngIf="canDeleteFiles()"
+              >
+                🗑 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin archivos -->
+        <ng-template #noFiles>
+          <div class="no-files">
+            <p>No hay archivos disponibles en esta sección</p>
+            <small *ngIf="canUploadFiles()">Sube el primer archivo haciendo click en "Subir Archivo"</small>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="closeModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

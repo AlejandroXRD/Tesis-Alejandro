@@ -64,23 +64,25 @@ export class CrearTareaComponent implements OnInit {
     });
   }
 
-  onColectivoChange(colectivoId: string): void {
-    this.form.profesorId = '';
-    this.profesores = [];
+ onColectivoChange(colectivoId: string): void {
+  this.form.profesorId = '';
+  this.profesores = [];
 
-    if (!colectivoId) return;
+  if (!colectivoId) return;
 
-    const selected = this.colectivos.find((c) => c.colectivoId === colectivoId);
-    const profesores = selected?.profesores ?? [];
+  const selected = this.colectivos.find((c) => c.colectivoId === colectivoId);
+  const profesores = selected?.profesores ?? [];
 
-    this.profesores = profesores.map((p) => ({
-      userId: p.userId,
-      userName: p.userName,
-      apellido: p.apellido,
-      rol: 'PROFESOR',
-      createdAt: '',
-    }));
-  }
+  this.profesores = profesores.map((p: any) => ({
+    userId: p.profesor.userId,           // ← Cambio aquí
+    userName: p.profesor.userName,       // ← Cambio aquí
+    apellido: p.profesor.apellido,       // ← Cambio aquí
+    rol: p.profesor.rol,                 // ← Puedes traerlo de aquí también
+    createdAt: p.createdAt,              // ← Este sí está en el nivel superior
+  }));
+
+  console.log(this.profesores); // Para verificar que ahora tiene los datos
+}
 
   isFormValid(): boolean {
     return (
