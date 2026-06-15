@@ -17,6 +17,7 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
     "@primeuix/themes": "^2.0.3",
+    "exceljs": "^3.4.0",
     "primeng": "^21.1.8",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -26,6 +27,7 @@
     "@angular/build": "^21.2.13",
     "@angular/cli": "^21.2.13",
     "@angular/compiler-cli": "^21.2.0",
+    "@types/exceljs": "^0.5.3",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2"
   }

@@ -36,7 +36,7 @@ model User {
   userId    String   @id @default(uuid())
   userName  String   @unique
   password  String
-  rol       Rol      @default(PROFESOR)
+  rol       Rol      @default(NUEVO_USUARIO)
   apellido  String
   createdAt DateTime @default(now())
 
@@ -64,7 +64,10 @@ model Tarea {
   archivo     String?     // ← NUEVO: nombre del archivo subido
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+  catDoc      String  
+  catCient    String
 
+  
   profesor User   @relation(fields: [userId], references: [userId])
   userId   String
 }

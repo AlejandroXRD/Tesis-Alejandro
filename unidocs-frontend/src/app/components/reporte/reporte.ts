@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ColectivoService, Colectivo } from '../../services/colectivo.service';
 import { ReporteService, ReporteColectivo } from '../../services/reporte.service';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
-import * as XLSX from 'xlsx';
+import * as ExcelJS from 'exceljs';
 
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
@@ -61,7 +61,7 @@ export class ReporteComponent implements OnInit {
       total: tareas.length,
       completadas: tareas.filter(t => t.estado === 'COMPLETADA').length,
       pendientes: tareas.filter(t => t.estado === 'PENDIENTE').length,
-      vencidas: tareas.filter(t => t.estado === 'VENCIDA').length,
+      vencidas: tareas.filter(t => t.estado === 'RECHAZADA').length,
     };
   });
 
@@ -149,125 +149,247 @@ export class ReporteComponent implements OnInit {
     this.rows.set(event.rows ?? 8);
   }
 
-  exportarExcel(): void {
-    const reporte = this.reporte();
-    if (!reporte) return;
-
-    const resumen = this.tareasResumen();
-    const workbook = XLSX.utils.book_new();
-
-    // ═══════════════════════════════════════════════
-    // HOJA 1 — Resumen del colectivo
-    // ═══════════════════════════════════════════════
-    const filasResumen: (string | number)[][] = [
-      ['REPORTE DE COLECTIVO ACADÉMICO'],
-      [reporte.colectivo.nombre],
-      [`Generado el ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`],
-      [],
-      ['DATOS DEL COLECTIVO', ''],
-      ['Nombre del colectivo',    reporte.colectivo.nombre],
-      ['Año académico',           `${reporte.colectivo.año}° año`],
-      ['Modalidad',               reporte.colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Por Encuentros'],
-      ['Cantidad de profesores',  reporte.colectivo.cantidadProfesores],
-      [],
-      ['RESUMEN DE TAREAS', ''],
-      ['Total de tareas',   resumen.total],
-      ['Completadas',       resumen.completadas],
-      ['Pendientes',        resumen.pendientes],
-      ['Vencidas',          resumen.vencidas],
-    ];
-
-    const wsResumen = XLSX.utils.aoa_to_sheet(filasResumen);
-
-    // Ancho de columnas
-    wsResumen['!cols'] = [{ wch: 30 }, { wch: 40 }];
-
-    // Merge del título, subtítulo y fecha
-    wsResumen['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, wsResumen, 'Resumen');
-
-    // ═══════════════════════════════════════════════
-    // HOJA 2 — Profesores y tareas
-    // ═══════════════════════════════════════════════
-    const cabecera = [
-      'Nombre', 'Apellido', 'Rol', 'Asignatura',
-      'Tarea', 'Descripción', 'Fecha límite', 'Estado',
-    ];
-
-    const filasProfesores: (string)[][] = [cabecera];
-
-    reporte.profesores.forEach((prof) => {
-      if (prof.tareas.length === 0) {
-        filasProfesores.push([
-          prof.nombre,
-          prof.apellido ?? '',
-          prof.rol,
-          prof.asignatura,
-          '— Sin tareas —', '', '', '',
-        ]);
-        return;
-      }
-
-      prof.tareas.forEach((tarea, tIdx) => {
-        filasProfesores.push([
-          tIdx === 0 ? prof.nombre        : '',
-          tIdx === 0 ? (prof.apellido ?? '') : '',
-          tIdx === 0 ? prof.rol           : '',
-          tIdx === 0 ? prof.asignatura    : '',
-          tarea.nombreTarea,
-          tarea.descripcion,
-          new Date(tarea.fechaLimite).toLocaleDateString('es-ES'),
-          this.estadoLabel(tarea.estado),
-        ]);
-      });
-    });
-
-    const wsProfesores = XLSX.utils.aoa_to_sheet(filasProfesores);
-
-    wsProfesores['!cols'] = [
-      { wch: 22 }, // Nombre
-      { wch: 18 }, // Apellido
-      { wch: 22 }, // Rol
-      { wch: 24 }, // Asignatura
-      { wch: 28 }, // Tarea
-      { wch: 40 }, // Descripción
-      { wch: 16 }, // Fecha límite
-      { wch: 14 }, // Estado
-    ];
-
-    XLSX.utils.book_append_sheet(workbook, wsProfesores, 'Profesores y Tareas');
-
-    // ─────────────────────────────────────────────
-    // Descargar
-    // ─────────────────────────────────────────────
-    const nombreArchivo = `Reporte_${reporte.colectivo.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-    XLSX.writeFile(workbook, nombreArchivo);
-  }
-
-  estadoClass(estado: string): string {
-    switch (estado) {
-      case 'COMPLETADA': return 'badge--completada';
-      case 'PENDIENTE':  return 'badge--pendiente';
-      case 'VENCIDA':    return 'badge--vencida';
-      default:           return 'badge--default';
-    }
-  }
+  // ── Métodos de utilidad para estados ──
 
   estadoLabel(estado: string): string {
     switch (estado) {
       case 'COMPLETADA': return 'Completada';
       case 'PENDIENTE':  return 'Pendiente';
-      case 'VENCIDA':    return 'Vencida';
+      case 'RECHAZADA':    return 'RECHAZADA';
       default:           return estado;
     }
   }
 
-  esFechaVencida(fecha: string): boolean {
+  estadoClass(estado: string): Record<string, boolean> {
+    return {
+      'estado-completada': estado === 'COMPLETADA',
+      'estado-pendiente':  estado === 'PENDIENTE',
+      'estado-rechazada':    estado === 'RECHAZADA',
+    };
+  }
+
+  esFechaVencida(fecha: string | Date): boolean {
     return new Date(fecha) < new Date();
+  }
+
+  // ── Exportar Excel ──
+
+  async exportarExcel(): Promise<void> {
+    const reporte = this.reporte();
+    if (!reporte) return;
+
+    const resumen = this.tareasResumen();
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'Tu App';
+    workbook.created = new Date();
+
+    // ═══════════════════════════════════════════════
+    // HOJA 1 — Resumen del colectivo (con estilos)
+    // ═══════════════════════════════════════════════
+    const wsResumen = workbook.addWorksheet('Resumen', {
+      pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+    });
+
+    // --- Estilos comunes ---
+    // FIX: eliminated duplicate "font" key by merging both font definitions into one
+    const titleStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, size: 14, name: 'Calibri', color: { argb: 'FFFFFFFF' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } },
+    };
+
+    // FIX: eliminated duplicate "font" key by merging both font definitions into one
+    const subtitleStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, size: 12, name: 'Calibri', color: { argb: 'FFFFFFFF' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF34495E' } },
+    };
+
+    const labelStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, name: 'Calibri', size: 11 },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFECF0F1' } },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const valueStyle: Partial<ExcelJS.Style> = {
+      font: { name: 'Calibri', size: 11 },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    // --- Insertar datos ---
+    wsResumen.addRow(['REPORTE DE COLECTIVO ACADÉMICO']);
+    wsResumen.addRow([reporte.colectivo.nombre]);
+    wsResumen.addRow([`Generado el ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`]);
+    wsResumen.addRow([]);
+    wsResumen.addRow(['DATOS DEL COLECTIVO', '']);
+    wsResumen.addRow(['Nombre del colectivo', reporte.colectivo.nombre]);
+    wsResumen.addRow(['Año académico', `${reporte.colectivo.año}° año`]);
+    wsResumen.addRow(['Modalidad', reporte.colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Por Encuentros']);
+    wsResumen.addRow(['Cantidad de profesores', reporte.colectivo.cantidadProfesores]);
+    wsResumen.addRow([]);
+    wsResumen.addRow(['RESUMEN DE TAREAS', '']);
+    wsResumen.addRow(['Total de tareas', resumen.total]);
+    wsResumen.addRow(['Completadas', resumen.completadas]);
+    wsResumen.addRow(['Pendientes', resumen.pendientes]);
+    wsResumen.addRow(['Vencidas', resumen.vencidas]);
+
+    // --- Aplicar estilos y merges ---
+    wsResumen.mergeCells('A1:B1');
+    wsResumen.mergeCells('A2:B2');
+    wsResumen.mergeCells('A3:B3');
+
+    const titleRow1 = wsResumen.getRow(1);
+    titleRow1.height = 25;
+    titleRow1.getCell(1).style = titleStyle;
+
+    const titleRow2 = wsResumen.getRow(2);
+    titleRow2.height = 22;
+    titleRow2.getCell(1).style = subtitleStyle;
+
+    const dateRow = wsResumen.getRow(3);
+    dateRow.height = 20;
+    dateRow.getCell(1).style = {
+      ...subtitleStyle,
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF7F8C8D' } }
+    };
+
+    for (let i = 5; i <= 16; i++) {
+      const row = wsResumen.getRow(i);
+      row.getCell(1).style = labelStyle;
+      if (i !== 5 && i !== 11) {
+        row.getCell(2).style = valueStyle;
+      } else {
+        row.getCell(1).style = {
+          ...labelStyle,
+          fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD5DBDB' } },
+          font: { bold: true }
+        };
+      }
+    }
+
+    for (let i = 6; i <= 9; i++) wsResumen.getRow(i).height = 18;
+    for (let i = 12; i <= 15; i++) wsResumen.getRow(i).height = 18;
+
+    wsResumen.getColumn(1).width = 30;
+    wsResumen.getColumn(2).width = 40;
+
+    // ═══════════════════════════════════════════════
+    // HOJA 2 — Profesores y tareas (tabla profesional)
+    // ═══════════════════════════════════════════════
+    const wsProfesores = workbook.addWorksheet('Profesores y Tareas');
+
+    const headerStyle: Partial<ExcelJS.Style> = {
+      font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 11, name: 'Calibri' },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F618D' } },
+      alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const evenRowStyle: Partial<ExcelJS.Style> = {
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F6F9' } },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const oddRowStyle: Partial<ExcelJS.Style> = {
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
+    const pendingStyle: Partial<ExcelJS.Style> = {
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFC107' } },
+      font: { bold: true, color: { argb: 'FF212529' } }
+    };
+    const completedStyle: Partial<ExcelJS.Style> = {
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF28A745' } },
+      font: { bold: true, color: { argb: 'FFFFFFFF' } }
+    };
+    const overdueStyle: Partial<ExcelJS.Style> = {
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC3545' } },
+      font: { bold: true, color: { argb: 'FFFFFFFF' } }
+    };
+
+    const cabecera = [
+      'Nombre', 'Apellido', 'Rol', 'Asignatura',
+      'Tarea', 'Descripción', 'Fecha límite', 'Estado'
+    ];
+    const headerRow = wsProfesores.addRow(cabecera);
+    headerRow.height = 24;
+    headerRow.eachCell((cell) => { cell.style = headerStyle; });
+
+    let rowIndex = 2;
+    reporte.profesores.forEach((prof) => {
+      const tareas = prof.tareas;
+      if (tareas.length === 0) {
+        const newRow = wsProfesores.addRow([
+          prof.nombre, prof.apellido ?? '', prof.rol, prof.asignatura,
+          '— Sin tareas —', '', '', ''
+        ]);
+        newRow.height = 20;
+        newRow.eachCell((cell, colNumber) => {
+          cell.style = (rowIndex % 2 === 0) ? { ...evenRowStyle } : { ...oddRowStyle };
+          if (colNumber === 5) {
+            cell.style = { ...cell.style, font: { italic: true, color: { argb: 'FF6C757D' } } };
+          }
+        });
+        rowIndex++;
+        return;
+      }
+
+      tareas.forEach((tarea, tIdx) => {
+        const estado = this.estadoLabel(tarea.estado);
+        const newRow = wsProfesores.addRow([
+          tIdx === 0 ? prof.nombre : '',
+          tIdx === 0 ? (prof.apellido ?? '') : '',
+          tIdx === 0 ? prof.rol : '',
+          tIdx === 0 ? prof.asignatura : '',
+          tarea.nombreTarea,
+          tarea.descripcion,
+          new Date(tarea.fechaLimite).toLocaleDateString('es-ES'),
+          estado,
+        ]);
+        newRow.height = 20;
+
+        newRow.eachCell((cell) => {
+          cell.style = (rowIndex % 2 === 0) ? { ...evenRowStyle } : { ...oddRowStyle };
+          cell.alignment = { vertical: 'middle', wrapText: true };
+        });
+
+        const estadoCell = newRow.getCell(8);
+        if (estado === 'Completada') {
+          estadoCell.style = { ...estadoCell.style, ...completedStyle, alignment: { horizontal: 'center' } };
+        } else if (estado === 'Pendiente') {
+          estadoCell.style = { ...estadoCell.style, ...pendingStyle, alignment: { horizontal: 'center' } };
+        } else if (estado === 'Vencida') {
+          estadoCell.style = { ...estadoCell.style, ...overdueStyle, alignment: { horizontal: 'center' } };
+        } else {
+          estadoCell.style = { ...estadoCell.style, alignment: { horizontal: 'center' } };
+        }
+
+        rowIndex++;
+      });
+    });
+
+    wsProfesores.getColumn(1).width = 22;
+    wsProfesores.getColumn(2).width = 18;
+    wsProfesores.getColumn(3).width = 22;
+    wsProfesores.getColumn(4).width = 24;
+    wsProfesores.getColumn(5).width = 28;
+    wsProfesores.getColumn(6).width = 40;
+    wsProfesores.getColumn(7).width = 16;
+    wsProfesores.getColumn(8).width = 14;
+
+    wsProfesores.views = [{ state: 'frozen', ySplit: 1 }];
+
+    // ═══════════════════════════════════════════════
+    // DESCARGAR ARCHIVO
+    // ═══════════════════════════════════════════════
+    const nombreArchivo = `Reporte_${reporte.colectivo.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = nombreArchivo;
+    link.click();
+    URL.revokeObjectURL(link.href);
   }
 }
