@@ -72,7 +72,7 @@
                 >
                   <option value="">Selecciona un colectivo</option>
                   <option *ngFor="let c of colectivos" [value]="c.colectivoId">
-                    {{ c.nombreColectivo }} ({{ c.year }})
+                    {{ c.nombreColectivo }} ({{ c.year }}) {{c.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro'}} - Período: {{ c.periodo }}
                   </option>
                 </select>
                 <span class="form-hint">Selecciona el colectivo para cargar sus profesores</span>

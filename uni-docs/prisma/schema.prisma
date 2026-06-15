@@ -15,6 +15,11 @@ enum Rol {
   NUEVO_USUARIO
 }
 
+enum Periodo {
+  PRIMERO
+  SEGUNDO
+}
+
 enum Modalidad {
   DIURNO
   ENCUENTRO
@@ -44,6 +49,7 @@ model Colectivo {
   nombreColectivo String
   year            Int
   modalidad       Modalidad
+  periodo         Periodo
   createdAt       DateTime @default(now())
 
   profesores ColectivoProfesor[]

@@ -12,7 +12,8 @@ export class ColectivoService {
       data: {
         nombreColectivo: createColectivoDto.nombreColectivo,
         year: createColectivoDto.year,
-        modalidad: createColectivoDto.modalidad
+        modalidad: createColectivoDto.modalidad,
+        periodo : createColectivoDto.periodo
       }
     });
   }
