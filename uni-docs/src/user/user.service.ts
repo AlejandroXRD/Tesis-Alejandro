@@ -33,7 +33,7 @@ export class UserService {
         userName: data.userName,
         password: hashedPassword,
         apellido: data.apellido,
-        rol: data.rol ?? Rol.PROFESOR, // Por defecto: PROFESOR
+        rol: data.rol ?? Rol.NUEVO_USUARIO, // Por defecto: Nuevo Usuario
       },
       select: {
         userId: true,

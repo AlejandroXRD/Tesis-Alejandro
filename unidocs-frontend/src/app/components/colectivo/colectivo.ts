@@ -32,6 +32,7 @@ export class ColectivoComponent implements OnInit {
   private readonly rolesPermitidos = new Set(['ADMIN', 'DECANO_VICEDECANO', 'JEFE_DEPARTAMENTO']);
 
   puedeGestionarColectivos = signal<boolean>(false);
+  esUsuarioNormal = signal<boolean>(false);
 
   private debugPermisosEnabled = true;
 
@@ -83,7 +84,12 @@ export class ColectivoComponent implements OnInit {
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     const rolRaw = (user?.rol ?? '').toString();
     const rol = rolRaw.toUpperCase().replace(/\s+/g, '_').trim();
-    this.puedeGestionarColectivos.set(this.rolesPermitidos.has(rol));
+    
+    const esAdmin = this.rolesPermitidos.has(rol);
+    this.puedeGestionarColectivos.set(esAdmin);
+    
+    // 👤 Si NO es admin, es usuario normal
+    this.esUsuarioNormal.set(!esAdmin);
   }
 
   ngOnInit(): void {
@@ -121,25 +127,56 @@ export class ColectivoComponent implements OnInit {
     this.colectivoActivo.set(null);
     this.cargando.set(true);
 
-    const servicio$ = curso === 'DIURNO'
-      ? this.colectivoService.getAllDiurno()
-      : this.colectivoService.getAllEncuentro();
+    // 🔀 Decidir qué datos cargar según el rol del usuario
+    const esUsuarioNormal = this.esUsuarioNormal();
+    
+    let servicio$: any;
+    
+    if (esUsuarioNormal) {
+      // 👤 Usuario normal: cargar solo MIS colectivos asignados
+      servicio$ = curso === 'DIURNO'
+        ? this.colectivoService.getMisColectivosDiurno()
+        : this.colectivoService.getMisColectivosEncuentro();
+    } else {
+      // 👨‍💼 Admin/Jefe/Decano: cargar TODOS los colectivos
+      servicio$ = curso === 'DIURNO'
+        ? this.colectivoService.getAllDiurno()
+        : this.colectivoService.getAllEncuentro();
+    }
 
     servicio$.subscribe({
-      next: (datos) => {
-        this.colectivos.set(datos);
+      next: (datos: any) => {
+        // Extraer array de colectivos
+        // Si es respuesta del usuario normal (getMisColectivos*), vienen en respuesta.colectivos
+        // Si es respuesta de admin (getAll*), viene directamente el array
+        const colectivosArray = Array.isArray(datos) ? datos : (datos.colectivos || []);
+        
+        this.colectivos.set(colectivosArray);
 
         // Seleccionar primer colectivo permitido si aplica.
         const filtrados = this.colectivosFiltrados();
 
-        this.colectivoActivo.set(filtrados[0] ?? datos[0] ?? null);
+        this.colectivoActivo.set(filtrados[0] ?? colectivosArray[0] ?? null);
 
-        this.mensaje.set('');
+        // Si es usuario normal y no hay colectivos
+        if (esUsuarioNormal && colectivosArray.length === 0) {
+          this.mensaje.set(`No estás asignado a ningún colectivo ${curso}.`);
+        } else {
+          this.mensaje.set('');
+        }
+
         this.cargando.set(false);
       },
-      error: (err) => {
+      error: (err : any) => {
         console.error('Error al cargar colectivos:', err);
-        this.error.set('Error al cargar los colectivos. Intente nuevamente.');
+        
+        // Mensaje de error específico
+        if (err.status === 401) {
+          this.error.set('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+        } else {
+          this.error.set('Error al cargar los colectivos. Intente nuevamente.');
+        }
+        
         this.cargando.set(false);
       }
     });
@@ -165,7 +202,8 @@ export class ColectivoComponent implements OnInit {
   }
 
   seleccionarColectivo(id: string): void {
-    const encontrado = this.colectivosFiltrados().find(c => c.colectivoId === id) ?? null;
+    // Buscar en la lista completa cargada del curso para no depender del filtro de año.
+    const encontrado = this.colectivos().find(c => c.colectivoId === id) ?? null;
     this.colectivoActivo.set(encontrado);
     this.mensaje.set('');
   }
@@ -386,8 +424,8 @@ export class ColectivoComponent implements OnInit {
       });
   }
 
-      onPageChange(event: PaginatorState) {
-        this.first.set(event.first ?? 0);
-        this.rows.set(event.rows ?? 5);
-    }
+  onPageChange(event: PaginatorState) {
+    this.first.set(event.first ?? 0);
+    this.rows.set(event.rows ?? 5);
+  }
 }

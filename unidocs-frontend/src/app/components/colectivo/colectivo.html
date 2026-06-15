@@ -61,12 +61,37 @@
   </div>
 
   <div class="colectivo-workspace" *ngIf="cursoSeleccionado()">
-
     <div class="toolbar">
       <div class="toolbar-group">
-        <button type="button" class="btn btn--primary" (click)="abrirModal()">Crear Colectivo</button>
-        <button type="button" class="btn btn--secondary" (click)="editarColectivo()" [disabled]="!colectivoActivo()">Editar</button>
-        <button type="button" class="btn btn--danger" (click)="eliminarColectivo()" [disabled]="!colectivoActivo()">Eliminar</button>
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--primary"
+          (click)="abrirModal()"
+        >
+          Crear Colectivo
+        </button>
+
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--secondary"
+          (click)="editarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >
+          Editar
+        </button>
+
+        <button
+          *ngIf="puedeGestionarColectivos()"
+          type="button"
+          class="btn btn--danger"
+          (click)="eliminarColectivo()"
+          [disabled]="!colectivoActivo()"
+        >
+          Eliminar
+        </button>
+
         <select (change)="filterByYear($event)" name="Filtrar por año" id="">
           <option value="0">Ver todos</option>
           <option value="1">1er año</option>
