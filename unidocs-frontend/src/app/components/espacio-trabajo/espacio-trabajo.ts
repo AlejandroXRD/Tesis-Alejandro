@@ -17,8 +17,8 @@ interface FileDocument {
   selector: 'app-espacio-trabajo',
   standalone: true,
   imports: [CommonModule],
-  styleUrl: "./espacio-trabajo.component.css",
-  templateUrl: "./espacio-trabajo.component.html"
+  styleUrl: "./espacio-trabajo.css",
+  templateUrl: "./espacio-trabajo.html"
 })
 export class EspacioTrabajoComponent implements OnInit {
   private authService = inject(AuthService);
