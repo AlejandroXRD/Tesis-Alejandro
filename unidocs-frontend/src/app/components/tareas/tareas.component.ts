@@ -31,6 +31,9 @@ export class TareasComponent implements OnInit {
 
   loggedUser = computed(() => this.authService.getUser());
 
+  // Roles que ven TODAS las tareas
+  private readonly rolesAdmin = new Set(['ADMIN', 'JEFE_DEPARTAMENTO', 'DECANO_VICEDECANO']);
+
   ngOnInit(): void {
     this.cargarTareas();
   }
@@ -39,7 +42,15 @@ export class TareasComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    this.tareaService.getAllTareas().subscribe({
+    const rol = this.getCurrentRol();
+
+    // Admin / Jefe / Decano → todas las tareas
+    // PPA / Profesor        → solo las suyas (el backend distingue internamente)
+    const peticion$ = this.rolesAdmin.has(rol)
+      ? this.tareaService.getAllTareas()
+      : this.tareaService.getMisTareas();
+
+    peticion$.subscribe({
       next: (data) => {
         this.tareas = data ?? [];
         this.loading = false;
@@ -54,7 +65,8 @@ export class TareasComponent implements OnInit {
     });
   }
 
-  // 🆕 PERMISOS POR ROL
+  // ── Permisos por rol ──────────────────────────────────────────
+
   getCurrentRol(): string {
     return String(this.loggedUser()?.rol ?? '').toUpperCase().trim();
   }
@@ -67,15 +79,15 @@ export class TareasComponent implements OnInit {
 
   /** ADMIN, JEFE_DEPARTAMENTO, DECANO_VICEDECANO pueden revisar y descargar */
   canReviewFiles(): boolean {
-    const rol = this.getCurrentRol();
-    return ['ADMIN', 'JEFE_DEPARTAMENTO', 'DECANO_VICEDECANO'].includes(rol);
+    return this.rolesAdmin.has(this.getCurrentRol());
   }
 
   canCreateTarea(): boolean {
     return this.canReviewFiles();
   }
 
-  // 🆕 DRAG & DROP + CLICK
+  // ── Modal de subida ───────────────────────────────────────────
+
   openUploadModal(tareaId: string): void {
     this.selectedTareaId = tareaId;
     this.selectedFile = null;
@@ -160,7 +172,8 @@ export class TareasComponent implements OnInit {
     });
   }
 
-  // 🆕 DESCARGA
+  // ── Descarga ──────────────────────────────────────────────────
+
   downloadFile(tareaId: string): void {
     this.tareaService.downloadArchivo(tareaId).subscribe({
       next: (blob) => {
@@ -180,7 +193,8 @@ export class TareasComponent implements OnInit {
     });
   }
 
-  // 🆕 CAMBIO DE ESTADO
+  // ── Cambio de estado ──────────────────────────────────────────
+
   cambiarEstado(tarea: Tarea, nuevoEstado: 'EN_REVISION' | 'COMPLETADA' | 'RECHAZADA'): void {
     this.tareaService.updateEstado(tarea.tareaId, nuevoEstado).subscribe({
       next: () => {
@@ -192,6 +206,8 @@ export class TareasComponent implements OnInit {
       }
     });
   }
+
+  // ── Utilidades ────────────────────────────────────────────────
 
   formatFecha(fecha: string): string {
     if (!fecha) return '';

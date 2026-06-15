@@ -22,7 +22,6 @@ export class TareaController {
   constructor(private readonly tareaService: TareaService) {
     if (!fs.existsSync(this.uploadPath)) {
       fs.mkdirSync(this.uploadPath, { recursive: true });
-      console.log('📁 [BACKEND] Carpeta Uploads creada en:', this.uploadPath);
     }
   }
 
@@ -33,11 +32,21 @@ export class TareaController {
   }
 
   @Get()
-  findAll(@Req() req: any) {
-    console.log('🎯 [BACKEND] GET /tarea');
-    console.log('🎯 [BACKEND] Method:', req.method);
-    console.log('🎯 [BACKEND] Headers:', JSON.stringify(req.headers));
+  findAll() {
     return this.tareaService.findAll();
+  }
+
+  // ─────────────────────────────────────────────
+  // 🆕 GET /tarea/mis-tareas
+  // ─────────────────────────────────────────────
+  // IMPORTANTE: esta ruta debe ir ANTES de `:id`
+  // para que NestJS no interprete "mis-tareas" como un UUID.
+  @Get('mis-tareas')
+  @UseGuards(JwtAuthGuard)
+  getMisTareas(@Req() req: any) {
+    // El JwtAuthGuard adjunta el payload decodificado en req.user
+    const userId: string = req.user.userId ?? req.user.sub;
+    return this.tareaService.getMisTareas(userId);
   }
 
   @Get(':id')
@@ -57,7 +66,7 @@ export class TareaController {
     return this.tareaService.remove(id);
   }
 
-  // 🆕 SUBIR ARCHIVO - Solo usuarios autenticados (PROFESOR/PPA)
+  // SUBIR ARCHIVO
   @Post(':id/upload')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
@@ -77,7 +86,7 @@ export class TareaController {
         if (!allowedExt.includes(ext)) {
           return cb(
             new BadRequestException('Solo se permiten archivos .pdf, .docx, .xlsx, .xls'),
-            false
+            false,
           );
         }
         cb(null, true);
@@ -92,11 +101,10 @@ export class TareaController {
     if (!file) {
       throw new BadRequestException('No se subió ningún archivo');
     }
-    console.log('📤 [BACKEND] Archivo recibido:', file.filename);
     return this.tareaService.uploadArchivo(id, file.filename);
   }
 
-  // 🆕 DESCARGAR ARCHIVO - Solo usuarios autenticados (ADMIN/JEFE/DECANO)
+  // DESCARGAR ARCHIVO
   @Get(':id/download')
   @UseGuards(JwtAuthGuard)
   async downloadArchivo(@Param('id') id: string, @Res() res: any) {

@@ -20,7 +20,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   await app.listen(3000);
-  logger.log(`🚀 [BACKEND] Aplicación corriendo en http://localhost:3000`);
 
   await seedAdminIfEmpty(logger);
 }
@@ -29,7 +28,6 @@ async function seedAdminIfEmpty(logger: Logger) {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    logger.error('❌ [SEEDER] DATABASE_URL no está definida en .env');
     return;
   }
 
@@ -39,12 +37,10 @@ async function seedAdminIfEmpty(logger: Logger) {
 
   try {
     await prisma.$connect();
-    logger.log('🔍 [SEEDER] Verificando base de datos...');
 
     const userCount = await prisma.user.count();
 
     if (userCount > 0) {
-      logger.log(`✅ [SEEDER] La base de datos ya tiene ${userCount} usuario(s). No se crea admin.`);
       return;
     }
 
@@ -61,7 +57,6 @@ async function seedAdminIfEmpty(logger: Logger) {
 
   
   } catch (error) {
-    logger.error('❌ [SEEDER] Error al crear el admin:', error);
   } finally {
     await prisma.$disconnect();
   }

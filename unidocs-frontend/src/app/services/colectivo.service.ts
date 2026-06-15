@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { Observable, map } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
 import { switchMap } from 'rxjs/operators';
 
 // ── Modelos ──
@@ -43,13 +42,8 @@ export interface UpdateColectivoRequest {
   providedIn: 'root'
 })
 export class ColectivoService {
-  private readonly colectivoURL = 'http://localhost:3000/colectivo';
-  private readonly profesorURL = 'http://localhost:3000/user';
 
-  constructor(
-    private apiService: ApiService,
-    private http: HttpClient
-  ) {}
+  constructor(private apiService: ApiService) {}
 
   // 🛡️ Defensa en profundidad: garantiza que `profesores` siempre sea un array
   private normalizarColectivo = (c: Colectivo): Colectivo => ({
@@ -57,48 +51,146 @@ export class ColectivoService {
     profesores: c.profesores ?? []
   });
 
-  // ── Consultas ──
+  // ── Consultas Públicas (para admin/jefe/decano) ──
   getAllColectivos(): Observable<Colectivo[]> {
-    return this.http
-      .get<Colectivo[]>(this.colectivoURL)
+    return this.apiService
+      .get<Colectivo[]>('/colectivo')
       .pipe(map(list => list.map(this.normalizarColectivo)));
   }
 
   getAllDiurno(): Observable<Colectivo[]> {
-  return this.http
-    .get<Colectivo[]>(`${this.colectivoURL}/diurno`)
-    .pipe(
-      switchMap(colectivos => 
-        this.getAllProfesores().pipe(
-          map(profesores => {
-            // Mapa userId → datos del profesor
-            const profMap = new Map(profesores.map(p => [p.userId, p]));
-            
-            // Enriquecer cada colectivo
-            return colectivos.map(c => ({
-              ...c,
-              profesores: (c.profesores ?? []).map(p => ({
-                ...p,
-                userName: profMap.get(p.userId)?.userName ?? 'Sin nombre',
-                apellido: profMap.get(p.userId)?.apellido ?? '',
-                rol: profMap.get(p.userId)?.rol ?? ''
-              }))
-            }));
-          })
-        )
-      ),
-      map(list => list.map(c => this.normalizarColectivo(c)))
-    );
-}
+    return this.apiService
+      .get<Colectivo[]>('/colectivo/diurno')
+      .pipe(
+        switchMap(colectivos =>
+          this.getAllProfesores().pipe(
+            map(profesores => {
+              const profMap = new Map(profesores.map(p => [p.userId, p]));
+              return colectivos.map(c => ({
+                ...c,
+                profesores: (c.profesores ?? []).map(p => ({
+                  ...p,
+                  userName: profMap.get(p.userId)?.userName ?? 'Sin nombre',
+                  apellido: profMap.get(p.userId)?.apellido ?? '',
+                  rol: profMap.get(p.userId)?.rol ?? ''
+                }))
+              }));
+            })
+          )
+        ),
+        map(list => list.map(c => this.normalizarColectivo(c)))
+      );
+  }
 
   getAllEncuentro(): Observable<Colectivo[]> {
-    return this.http
-      .get<Colectivo[]>(`${this.colectivoURL}/encuentro`)
+    return this.apiService
+      .get<Colectivo[]>('/colectivo/encuentro')
       .pipe(map(list => list.map(this.normalizarColectivo)));
   }
 
+  // ── Consultas Privadas (para usuarios normales - mis colectivos) ──
+
+  /**
+   * Obtiene TODOS los colectivos del usuario actual.
+   * Requiere autenticación JWT.
+   * Endpoint: GET /colectivo/usuario/mis-colectivos
+   */
+  getMisColectivos(): Observable<any> {
+    return this.apiService
+      .get<any>('/colectivo/usuario/mis-colectivos')
+      .pipe(
+        switchMap(respuesta =>
+          this.getAllProfesores().pipe(
+            map(profesores => {
+              const profMap = new Map(profesores.map(p => [p.userId, p]));
+              const colectivosEnriquecidos = (respuesta.colectivos ?? []).map((c: any) => ({
+                ...c,
+                profesores: (c.profesores ?? []).map((p: any) => ({
+                  ...p,
+                  userName: profMap.get(p.userId)?.userName ?? 'Sin nombre',
+                  apellido: profMap.get(p.userId)?.apellido ?? '',
+                  rol: profMap.get(p.userId)?.rol ?? ''
+                }))
+              }));
+              return { ...respuesta, colectivos: colectivosEnriquecidos };
+            })
+          )
+        ),
+        map(respuesta => ({
+          ...respuesta,
+          colectivos: (respuesta.colectivos ?? []).map(this.normalizarColectivo)
+        }))
+      );
+  }
+
+  /**
+   * Obtiene los colectivos DIURNO del usuario actual.
+   * Requiere autenticación JWT.
+   * Endpoint: GET /colectivo/usuario/mis-colectivos/DIURNO
+   */
+  getMisColectivosDiurno(): Observable<any> {
+    return this.apiService
+      .get<any>('/colectivo/usuario/mis-colectivos/DIURNO')
+      .pipe(
+        switchMap(respuesta =>
+          this.getAllProfesores().pipe(
+            map(profesores => {
+              const profMap = new Map(profesores.map(p => [p.userId, p]));
+              const colectivosEnriquecidos = (respuesta.colectivos ?? []).map((c: any) => ({
+                ...c,
+                profesores: (c.profesores ?? []).map((p: any) => ({
+                  ...p,
+                  userName: profMap.get(p.userId)?.userName ?? 'Sin nombre',
+                  apellido: profMap.get(p.userId)?.apellido ?? '',
+                  rol: profMap.get(p.userId)?.rol ?? ''
+                }))
+              }));
+              return { ...respuesta, colectivos: colectivosEnriquecidos };
+            })
+          )
+        ),
+        map(respuesta => ({
+          ...respuesta,
+          colectivos: (respuesta.colectivos ?? []).map(this.normalizarColectivo)
+        }))
+      );
+  }
+
+  /**
+   * Obtiene los colectivos ENCUENTRO del usuario actual.
+   * Requiere autenticación JWT.
+   * Endpoint: GET /colectivo/usuario/mis-colectivos/ENCUENTRO
+   */
+  getMisColectivosEncuentro(): Observable<any> {
+    return this.apiService
+      .get<any>('/colectivo/usuario/mis-colectivos/ENCUENTRO')
+      .pipe(
+        switchMap(respuesta =>
+          this.getAllProfesores().pipe(
+            map(profesores => {
+              const profMap = new Map(profesores.map(p => [p.userId, p]));
+              const colectivosEnriquecidos = (respuesta.colectivos ?? []).map((c: any) => ({
+                ...c,
+                profesores: (c.profesores ?? []).map((p: any) => ({
+                  ...p,
+                  userName: profMap.get(p.userId)?.userName ?? 'Sin nombre',
+                  apellido: profMap.get(p.userId)?.apellido ?? '',
+                  rol: profMap.get(p.userId)?.rol ?? ''
+                }))
+              }));
+              return { ...respuesta, colectivos: colectivosEnriquecidos };
+            })
+          )
+        ),
+        map(respuesta => ({
+          ...respuesta,
+          colectivos: (respuesta.colectivos ?? []).map(this.normalizarColectivo)
+        }))
+      );
+  }
+
   getAllProfesores(): Observable<Profesor[]> {
-    return this.http.get<Profesor[]>(`${this.profesorURL}/profesores`);
+    return this.apiService.get<Profesor[]>('/user/profesores');
   }
 
   getColectivoById(id: string): Observable<Colectivo> {

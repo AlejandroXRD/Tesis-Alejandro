@@ -50,7 +50,7 @@ export class TareaService {
     });
   }
 
-  // 🆕 Subir archivo
+  // Subir archivo
   uploadArchivo(tareaId: string, file: File): Observable<Tarea> {
     const formData = new FormData();
     formData.append('archivo', file);
@@ -67,7 +67,7 @@ export class TareaService {
     );
   }
 
-  // 🆕 Descargar archivo
+  // Descargar archivo
   downloadArchivo(tareaId: string): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/tarea/${tareaId}/download`,
@@ -78,7 +78,7 @@ export class TareaService {
     );
   }
 
-  // 🆕 Cambiar estado
+  // Cambiar estado
   updateEstado(id: string, estado: EstadoTarea): Observable<Tarea> {
     return this.http.patch<Tarea>(
       `${this.apiUrl}/tarea/${id}`,
@@ -87,9 +87,18 @@ export class TareaService {
     );
   }
 
+  // Todas las tareas (ADMIN / JEFE / DECANO)
   getAllTareas(): Observable<Tarea[]> {
     return this.http.get<Tarea[]>(
       `${this.apiUrl}/tarea`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // 🆕 Mis tareas según rol (PROFESOR ve las suyas, PPA ve las de su colectivo)
+  getMisTareas(): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(
+      `${this.apiUrl}/tarea/mis-tareas`,
       { headers: this.getHeaders() }
     );
   }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { CreateTareaDto } from './dto/create-tarea.dto';
 import { UpdateTareaDto } from './dto/update-tarea.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -80,7 +80,6 @@ export class TareaService {
     });
   }
 
-  // 🆕 Guardar nombre de archivo
   async uploadArchivo(tareaId: string, filename: string) {
     const tareaExist = await this.prisma.tarea.findUnique({
       where: { tareaId },
@@ -94,7 +93,6 @@ export class TareaService {
     });
   }
 
-  // 🆕 Obtener ruta física del archivo
   async getArchivoPath(tareaId: string): Promise<{ path: string; filename: string }> {
     const tarea = await this.prisma.tarea.findUnique({
       where: { tareaId },
@@ -110,5 +108,74 @@ export class TareaService {
     }
 
     return { path: filePath, filename: tarea.archivo };
+  }
+
+  // ─────────────────────────────────────────────
+  // 🆕 GET MIS TAREAS según rol del usuario
+  // ─────────────────────────────────────────────
+  /**
+   * PPA     → Ve todas las tareas de los profesores asignados
+   *            a los colectivos donde él mismo está asignado.
+   * PROFESOR → Ve únicamente las tareas que le fueron asignadas a él.
+   * Otros roles (ADMIN, JEFE, DECANO) → ForbiddenException.
+   *            Ellos usan findAll() desde su propio panel.
+   */
+  async getMisTareas(userId: string) {
+    // 1. Obtener el usuario con su rol
+    const usuario = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+    if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+    // 2. Lógica según rol
+    if (usuario.rol === 'PROFESOR') {
+      // Solo sus tareas directas
+      return this.prisma.tarea.findMany({
+        where: { userId },
+        include: { profesor: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    if (usuario.rol === 'PPA') {
+      // a) Encontrar los colectivos donde está asignado el PPA
+      const colectivosDelPpa = await this.prisma.colectivoProfesor.findMany({
+        where: { userId },
+        select: { colectivoId: true },
+      });
+
+      if (colectivosDelPpa.length === 0) {
+        return [];
+      }
+
+      const colectivoIds = colectivosDelPpa.map(c => c.colectivoId);
+
+      // b) Encontrar todos los profesores en esos colectivos
+      const profesoresEnColectivos = await this.prisma.colectivoProfesor.findMany({
+        where: {
+          colectivoId: { in: colectivoIds },
+        },
+        select: { userId: true },
+      });
+
+      const profesorIds = [
+        // IDs únicos para no duplicar tareas si un profesor está en varios colectivos
+        ...new Set(profesoresEnColectivos.map(p => p.userId)),
+      ];
+
+      // c) Retornar todas las tareas de esos profesores
+      return this.prisma.tarea.findMany({
+        where: {
+          userId: { in: profesorIds },
+        },
+        include: { profesor: true },
+        orderBy: { createdAt: 'desc' },
+      });
+    }
+
+    // Cualquier otro rol no tiene acceso por este endpoint
+    throw new ForbiddenException(
+      'Tu rol no tiene acceso a este endpoint. Usa /tarea para ver todas las tareas.',
+    );
   }
 }
