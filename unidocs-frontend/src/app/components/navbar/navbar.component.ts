@@ -31,7 +31,14 @@ export class NavbarComponent implements OnInit {
     const rolRaw = this.loggedUser()?.rol ?? '';
     const rol = String(rolRaw).toLowerCase().trim();
     // Admin: cualquier variante que contenga "admin"
-    return rol === 'admin' || rol.includes('admin');
+    return rol === 'admin' || rol.includes('admin') || rol.includes('decano_vicedecano') ;
+  });
+
+  isJefeDepartamento = computed(() => {
+    const rolRaw = this.loggedUser()?.rol ?? '';
+    const rol = String(rolRaw).toLowerCase().trim();
+    // Admin: cualquier variante que contenga "admin"
+    return rol === 'jefe_departamento' ;
   });
 
   private lastScrollY = 0;

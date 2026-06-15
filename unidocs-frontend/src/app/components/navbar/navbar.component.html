@@ -3,8 +3,6 @@
     <!-- Logo Section -->
     <div class="navbar-brand">
       <div class="logos">
-        <img src="assets/logo-universidad.png" alt="Universidad" class="logo-universidad" />
-        <div class="logos-divider"></div>
         <img src="assets/logo-UniDocs.png" alt="UniDocs" class="logo-UniDocs" />
       </div>
       <div class="brand-text">
@@ -27,14 +25,12 @@
         <li><a href="/colectivos" (click)="closeMenu()">Colectivos</a></li>
         <li><a href="/tareas" (click)="closeMenu()">Tareas</a></li>
         <li *ngIf="isAdmin()"><a href="/usuarios" (click)="closeMenu()">Usuarios</a></li>
-        <li *ngIf="isAdmin()"><a href="/reporte" (click)="closeMenu()">Reportes</a></li>
+        <li *ngIf="isAdmin() || isJefeDepartamento() "><a href="/reporte" (click)="closeMenu()">Reportes</a></li>
       </ul>
 
       <!-- Usuario logueado -->
       <div class="user-info" *ngIf="isAuthenticated() && loggedUser()">
-        <div class="user-avatar" aria-hidden="true">
-          {{ (loggedUser()?.userName || '').slice(0, 1).toUpperCase() }}
-        </div>
+        
 
         <div class="user-meta">
           <div class="user-name-row">

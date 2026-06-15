@@ -72,7 +72,7 @@ export class UsuariosComponent implements OnInit {
     }
 
     const rol = String(rolRaw).toLowerCase().trim();
-    return rol === 'admin' || rol === 'administrador' || rol.includes('admin');
+    return rol === 'admin' || rol === 'administrador' || rol.includes('admin') || rol.includes('decano_vicedecano');
   }
 
   cargarUsuarios(): void {
