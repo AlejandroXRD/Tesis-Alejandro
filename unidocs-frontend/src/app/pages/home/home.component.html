@@ -1,43 +1,50 @@
 <div class="home-container">
-      <div class="welcome-section">
-        <h1>Bienvenido a UniDocs</h1>
-        <p class="lead">Sistema de Gestión Documental Integral de la Universidad de Matanzas</p>
+  <div class="welcome-section">
+    <h1>Bienvenido a UniDocs</h1>
+    <p class="lead">Sistema de Gestión Documental Integral de la Universidad de Matanzas</p>
 
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon"><img src="/colectivos.svg" alt="Colectivos" class="colectivos" /></div>
-            <h3>Colectivos</h3>
-            <p>Gestiona grupos de profesores y asignaturas de forma organizada</p>
-          </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><img src="/colectivos.svg" alt="Colectivos" class="colectivos" /></div>
+        <h3>Colectivos</h3>
+        <p>Gestiona grupos de profesores y asignaturas de forma organizada</p>
+      </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><img src="/tareas.svg" alt="Tareas" class="tareas" /></div>
-            <h3>Tareas</h3>
-            <p>Asigna y monitorea tareas de los colectivos de año</p>
-          </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="/tareas.svg" alt="Tareas" class="tareas" /></div>
+        <h3>Tareas</h3>
+        <p>Asigna y monitorea tareas de los colectivos de año</p>
+      </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><img src="/usuarios.svg" alt="Usuarios" class="usuarios" /></div>
-            <h3>Usuarios</h3>
-            <p>Administra perfiles y roles de usuarios</p>
-          </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="/usuarios.svg" alt="Usuarios" class="usuarios" /></div>
+        <h3>Usuarios</h3>
+        <p>Administra perfiles y roles de usuarios</p>
+      </div>
 
-          <div class="feature-card">
-            <div class="feature-icon"><img src="/reportes.svg" alt="Reportes" class="reportes" /></div>
-            <h3>Reportes</h3>
-            <p>Genera reportes detallados de actividades</p>
-          </div>
-        </div>
-
-        <div class="cta-section">
-          <ng-container *ngIf="!isAuthenticated(); else loggedIn">
-            <a href="/login" class="btn-primary">Iniciar Sesión</a>
-            <a href="/register" class="btn-secondary">Registrarse</a>
-          </ng-container>
-
-          <ng-template #loggedIn>
-            <!-- Oculto cuando está autenticado -->
-          </ng-template>
-        </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="/reportes.svg" alt="Reportes" class="reportes" /></div>
+        <h3>Reportes</h3>
+        <p>Genera reportes detallados de actividades</p>
       </div>
     </div>
+
+    <!-- ✨ NUEVO: Botón separado solo para autenticados -->
+    <ng-container *ngIf="isAuthenticated()">
+      <button (click)="goToWorkspace()" class="btn-workspace">
+        Acceder al espacio de trabajo
+      </button>
+    </ng-container>
+
+    <div class="cta-section">
+      <ng-container *ngIf="!isAuthenticated(); else loggedIn">
+        <a href="/login" class="btn-primary">Iniciar Sesión</a>
+        <a href="/register" class="btn-secondary">Registrarse</a>
+      </ng-container>
+
+      <ng-template #loggedIn>
+        <!-- Oculto cuando está autenticado -->
+      </ng-template>
+    </div>
+  </div>
+</div>

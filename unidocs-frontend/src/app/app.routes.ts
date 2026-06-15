@@ -9,9 +9,11 @@ import { AuthGuard } from './guards/auth.guard';
 import { PublicGuard } from './guards/public.guard';
 import { UsuariosComponent } from './components/usuarios/usuarios.component';
 import { ReporteComponent } from './components/reporte/reporte';
+import { EspacioTrabajoComponent } from './components/espacio-trabajo/espacio-trabajo';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
+  { path: 'espacio-trabajo', component: EspacioTrabajoComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent, canActivate: [PublicGuard] },
   { path: 'register', component: RegisterComponent, canActivate: [PublicGuard] },
   { path: 'colectivos', component: ColectivoComponent, canActivate: [AuthGuard] },

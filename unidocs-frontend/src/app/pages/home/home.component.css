@@ -29,7 +29,40 @@
       gap: 2rem;
       margin: 3rem 0;
     }
+    /* ✨ Nuevo estilo para el botón workspace */
+.btn-workspace {
+  margin-top: 2rem;
+  padding: 1rem 3rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.2);
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(30, 64, 175, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .btn-workspace {
+    width: 90%;
+    padding: 0.9rem 2rem;
+    font-size: 1rem;
+  }
+}
     .feature-card {
       background: var(--bg-secondary);
       border: 1px solid var(--border-color);

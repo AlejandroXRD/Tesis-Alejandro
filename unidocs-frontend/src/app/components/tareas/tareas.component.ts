@@ -20,6 +20,7 @@ export class TareasComponent implements OnInit {
   loading = false;
   error = '';
   tareas: Tarea[] = [];
+  sinTareasAsignadas = false;
 
   // Estado del modal de subida
   showUploadModal = false;
@@ -41,11 +42,10 @@ export class TareasComponent implements OnInit {
   cargarTareas(): void {
     this.loading = true;
     this.error = '';
+    this.sinTareasAsignadas = false;
 
     const rol = this.getCurrentRol();
 
-    // Admin / Jefe / Decano → todas las tareas
-    // PPA / Profesor        → solo las suyas (el backend distingue internamente)
     const peticion$ = this.rolesAdmin.has(rol)
       ? this.tareaService.getAllTareas()
       : this.tareaService.getMisTareas();
@@ -57,9 +57,15 @@ export class TareasComponent implements OnInit {
         this.cd.detectChanges();
       },
       error: (err) => {
-        console.error('❌ Error:', err);
-        this.error = `Error ${err.status}: No se pudieron cargar las tareas`;
         this.loading = false;
+        if (err.status === 403 || err.status === 404) {
+          // No es un error real — el usuario simplemente no tiene tareas asignadas
+          this.tareas = [];
+          this.sinTareasAsignadas = true;
+        } else {
+          console.error('❌ Error:', err);
+          this.error = `Error ${err.status}: No se pudieron cargar las tareas`;
+        }
         this.cd.detectChanges();
       }
     });
@@ -71,13 +77,11 @@ export class TareasComponent implements OnInit {
     return String(this.loggedUser()?.rol ?? '').toUpperCase().trim();
   }
 
-  /** PROFESOR y PPA pueden subir archivos */
   canUploadFiles(): boolean {
     const rol = this.getCurrentRol();
     return rol === 'PROFESOR' || rol === 'PPA';
   }
 
-  /** ADMIN, JEFE_DEPARTAMENTO, DECANO_VICEDECANO pueden revisar y descargar */
   canReviewFiles(): boolean {
     return this.rolesAdmin.has(this.getCurrentRol());
   }

@@ -21,4 +21,9 @@ export class HomeComponent {
   goToColectivos(): void {
     this.router.navigate(['/colectivos']);
   }
+
+  // ✨ NUEVO: Navegar al espacio de trabajo
+  goToWorkspace(): void {
+    this.router.navigate(['/espacio-trabajo']);
+  }
 }
