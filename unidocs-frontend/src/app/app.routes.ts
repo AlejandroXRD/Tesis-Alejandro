@@ -8,6 +8,7 @@ import { TareasComponent } from './components/tareas/tareas.component';
 import { AuthGuard } from './guards/auth.guard';
 import { PublicGuard } from './guards/public.guard';
 import { UsuariosComponent } from './components/usuarios/usuarios.component';
+import { ReporteComponent } from './components/reporte/reporte';
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
@@ -17,5 +18,6 @@ export const routes: Routes = [
   { path: 'crear-tareas', component: CrearTareaComponent, canActivate: [AuthGuard] },
   { path: 'tareas', component: TareasComponent, canActivate: [AuthGuard] },
   { path: 'usuarios', component: UsuariosComponent, canActivate: [AuthGuard] },
+  { path: 'reporte', component: ReporteComponent, canActivate: [AuthGuard] },
   { path: '**', redirectTo: 'home' }
 ];

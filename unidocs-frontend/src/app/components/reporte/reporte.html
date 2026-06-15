@@ -1,0 +1,293 @@
+<div class="reporte-page container">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Reportes Académicos
+      </span>
+      <h1 *ngIf="!cursoSeleccionado()">Seleccione un Curso</h1>
+      <h1 *ngIf="cursoSeleccionado()">
+        Reporte
+        <span class="h1-accent">{{ cursoSeleccionado() === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}</span>
+      </h1>
+      <p class="subtitle" *ngIf="!cursoSeleccionado()">
+        Elige el tipo de curso para visualizar el reporte detallado de cada colectivo.
+      </p>
+      <p class="subtitle" *ngIf="cursoSeleccionado()">
+        Selecciona un colectivo de la lista para ver el detalle de profesores y tareas asignadas.
+      </p>
+    </div>
+    <div class="header-deco" aria-hidden="true"></div>
+  </header>
+
+  <!-- ═══════════════════ SELECCIÓN DE CURSO ═══════════════════ -->
+  <div class="selection-grid" *ngIf="!cursoSeleccionado()">
+    <button type="button" class="course-card course-diurno" (click)="seleccionarCurso('DIURNO')">
+      <div class="course-icon course-icon--diurno">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+      </div>
+      <div class="course-body">
+        <span class="course-tag">Curso</span>
+        <strong>Diurno</strong>
+        <p>Ver reportes del turno diurno</p>
+      </div>
+      <svg class="course-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+
+    <button type="button" class="course-card course-encuentros" (click)="seleccionarCurso('ENCUENTRO')">
+      <div class="course-icon course-icon--encuentros">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="course-body">
+        <span class="course-tag">Curso</span>
+        <strong>Por Encuentros</strong>
+        <p>Ver reportes del curso por encuentros</p>
+      </div>
+      <svg class="course-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ═══════════════════ WORKSPACE ═══════════════════ -->
+  <div class="reporte-workspace" *ngIf="cursoSeleccionado()">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <select (change)="filterByYear($event)" class="year-select">
+          <option value="0">Todos los años</option>
+          <option value="1">1er año</option>
+          <option value="2">2do año</option>
+          <option value="3">3er año</option>
+          <option value="4">4to año</option>
+          <option value="5">5to año</option>
+        </select>
+      </div>
+      <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Cambiar curso
+      </button>
+    </div>
+
+    <!-- Error global -->
+    <div class="status-message status-message--error" *ngIf="error()">{{ error() }}</div>
+
+    <!-- Loading colectivos -->
+    <div *ngIf="cargandoColectivos()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando colectivos...</p>
+    </div>
+
+    <!-- Grid principal -->
+    <div class="content-grid" *ngIf="!cargandoColectivos()">
+
+      <!-- ── Panel izquierdo: lista de colectivos ── -->
+      <section class="panel list-panel">
+        <div class="panel-header">
+          <h2>Colectivos</h2>
+          <span class="count-badge">{{ (colectivosFiltrados() || []).length }}</span>
+        </div>
+        <div class="panel-body">
+
+          <div class="colective-list" *ngIf="colectivosFiltrados().length > 0; else emptyState">
+            <button
+              type="button"
+              class="colective-card"
+              *ngFor="let col of colectivosPaginados()"
+              [class.colective-card--active]="colectivoActivo()?.colectivoId === col.colectivoId"
+              (click)="seleccionarColectivo(col)"
+            >
+              <div class="card-year-stripe">{{ col.year }}°</div>
+              <div class="card-content">
+                <strong class="card-nombre">{{ col.nombreColectivo }}</strong>
+                <p class="card-desc">Creado: {{ col.createdAt | date:'shortDate' }}</p>
+                <div class="card-meta">
+                  <span class="meta-chip">{{ col.profesores?.length ?? 0 }} profesores</span>
+                  <span class="meta-chip meta-chip--primary">{{ col.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
+                </div>
+              </div>
+              <!-- Indicador activo -->
+              <svg *ngIf="colectivoActivo()?.colectivoId === col.colectivoId" class="card-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <ng-template #emptyState>
+            <div class="empty-state">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <p>No hay colectivos para este filtro.</p>
+            </div>
+          </ng-template>
+        </div>
+        <p-paginator
+          (onPageChange)="onPageChange($event)"
+          [first]="first()"
+          [rows]="rows()"
+          [totalRecords]="colectivosFiltrados().length"
+        />
+      </section>
+
+      <!-- ── Panel derecho: reporte ── -->
+      <aside class="panel detail-panel">
+
+        <!-- Sin selección -->
+        <div class="detail-empty" *ngIf="!colectivoActivo() && !cargandoReporte()">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <p>Selecciona un colectivo para ver su reporte completo.</p>
+        </div>
+
+        <!-- Loading reporte -->
+        <div class="detail-loading" *ngIf="cargandoReporte()">
+          <div class="spinner"></div>
+          <p>Cargando reporte...</p>
+        </div>
+
+        <!-- Reporte cargado -->
+        <div *ngIf="reporte() && !cargandoReporte()" class="reporte-content">
+
+          <!-- Cabecera del reporte -->
+          <div class="reporte-header">
+            <div class="reporte-header-top">
+              <div>
+                <div class="detail-year-badge">° año académico</div>
+                <h3 class="detail-nombre">{{ reporte()!.colectivo.nombre }}</h3>
+                <span class="modalidad-tag" [class.modalidad-tag--diurno]="reporte()!.colectivo.modalidad === 'DIURNO'" [class.modalidad-tag--encuentro]="reporte()!.colectivo.modalidad !== 'DIURNO'">
+                  {{ reporte()!.colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Por Encuentros' }}
+                </span>
+              </div>
+              <!-- Botón exportar Excel -->
+              <button type="button" class="btn btn--excel" (click)="exportarExcel()" title="Exportar a Excel">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                Exportar Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Tarjetas de resumen estadístico -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-value">{{ reporte()!.colectivo.cantidadProfesores }}</span>
+              <span class="stat-label">Profesores</span>
+            </div>
+            <div class="stat-card stat-card--total">
+              <span class="stat-value">{{ tareasResumen().total }}</span>
+              <span class="stat-label">Tareas totales</span>
+            </div>
+            <div class="stat-card stat-card--ok">
+              <span class="stat-value">{{ tareasResumen().completadas }}</span>
+              <span class="stat-label">Completadas</span>
+            </div>
+            <div class="stat-card stat-card--warn">
+              <span class="stat-value">{{ tareasResumen().pendientes }}</span>
+              <span class="stat-label">Pendientes</span>
+            </div>
+            <div class="stat-card stat-card--danger">
+              <span class="stat-value">{{ tareasResumen().vencidas }}</span>
+              <span class="stat-label">Vencidas</span>
+            </div>
+          </div>
+
+          <div class="section-divider">
+            <span>Profesores asignados</span>
+          </div>
+
+          <!-- Lista acordeón de profesores -->
+          <div class="profesor-list">
+            <div
+              class="profesor-item"
+              *ngFor="let prof of reporte()!.profesores; let i = index"
+              [class.profesor-item--open]="profesorAbierto() === i"
+            >
+              <!-- Cabecera del profesor -->
+              <button
+                type="button"
+                class="profesor-header"
+                (click)="toggleProfesor(i)"
+                [attr.aria-expanded]="profesorAbierto() === i"
+              >
+                <div class="profesor-avatar">
+                  <p>{{ prof.nombre.charAt(0) }}</p>
+                </div>
+                <div class="profesor-info">
+                  <strong class="profesor-nombre">{{ prof.nombre }} {{ prof.apellido }}</strong>
+                  <div class="profesor-meta">
+                    <span class="meta-chip">{{ prof.asignatura }}</span>
+                    <span class="rol-badge">{{ prof.rol }}</span>
+                  </div>
+                </div>
+                <div class="profesor-stats">
+                  <span class="tarea-count" [class.tarea-count--zero]="prof.tareas.length === 0">
+                    {{ prof.tareas.length }} {{ prof.tareas.length === 1 ? 'tarea' : 'tareas' }}
+                  </span>
+                  <svg class="chevron-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </div>
+              </button>
+
+              <!-- Cuerpo expandible: tareas -->
+              <div class="profesor-body" *ngIf="profesorAbierto() === i">
+
+                <div class="tareas-empty" *ngIf="prof.tareas.length === 0">
+                  <p>Este profesor no tiene tareas asignadas.</p>
+                </div>
+
+                <div class="tarea-list" *ngIf="prof.tareas.length > 0">
+                  <div class="tarea-card" *ngFor="let tarea of prof.tareas">
+                    <div class="tarea-top">
+                      <strong class="tarea-nombre">{{ tarea.nombreTarea }}</strong>
+                      <span class="estado-badge" [ngClass]="estadoClass(tarea.estado)">
+                        {{ estadoLabel(tarea.estado) }}
+                      </span>
+                    </div>
+                    <p class="tarea-descripcion">{{ tarea.descripcion }}</p>
+                    <div class="tarea-fecha" [class.tarea-fecha--vencida]="tarea.estado !== 'COMPLETADA' && esFechaVencida(tarea.fechaLimite)">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                      </svg>
+                      Fecha límite: {{ tarea.fechaLimite | date:'mediumDate' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+</div>

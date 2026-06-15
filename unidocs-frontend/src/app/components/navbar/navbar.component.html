@@ -27,6 +27,7 @@
         <li><a href="/colectivos" (click)="closeMenu()">Colectivos</a></li>
         <li><a href="/tareas" (click)="closeMenu()">Tareas</a></li>
         <li *ngIf="isAdmin()"><a href="/usuarios" (click)="closeMenu()">Usuarios</a></li>
+        <li *ngIf="isAdmin()"><a href="/reporte" (click)="closeMenu()">Reportes</a></li>
       </ul>
 
       <!-- Usuario logueado -->
