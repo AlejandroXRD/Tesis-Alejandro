@@ -34,7 +34,7 @@
 .btn--ghost { background-color: transparent; color: var(--text-secondary); border-color: var(--border-color); }
 .btn--ghost:hover:not(:disabled) { background-color: var(--bg-tertiary); color: var(--text-primary); }
 
-/* ==================== 🆕 BOTONES NUEVOS (subir/descargar/aprobar) ==================== */
+/* ==================== BOTONES NUEVOS (subir/descargar/aprobar) ==================== */
 .btn--upload,
 .btn--download,
 .btn--success,
@@ -99,6 +99,49 @@
 .page-header h1 { font-size: 2rem; font-weight: 600; color: var(--text-primary); line-height: 1.2; margin-bottom: 0.4rem; }
 .subtitle { color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; }
 
+/* ==================== TOOLBAR DE FILTROS ==================== */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.year-select {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.year-select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(30,64,175,0.12);
+}
+
+.year-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ==================== PANEL ==================== */
 .panel { background-color: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.875rem 1.25rem; border-bottom: 1px solid var(--border-color); background-color: var(--bg-secondary); }
@@ -110,13 +153,16 @@
 .loading-state { padding: 1rem 0.25rem; color: var(--text-secondary); }
 .error-state { padding: 0.75rem 1rem; background-color: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: var(--error-color); border-radius: 6px; }
 .empty-state {
-   padding: 1rem 0.25rem; color: var(--text-secondary);
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.75rem;
-    justify-content: left;
-  }
+  padding: 1rem 0.25rem;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem 1rem;
+}
 
 /* ==================== TAREA CARD ==================== */
 .tareas-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -124,7 +170,7 @@
 .tarea-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .tarea-nombre { margin: 0; font-size: 1.05rem; font-weight: 650; color: var(--text-primary); }
 
-/* ==================== 🆕 ESTADOS DE TAREA ==================== */
+/* ==================== ESTADOS DE TAREA ==================== */
 .estado-badge {
   display: inline-flex;
   align-items: center;
@@ -150,7 +196,7 @@
 .meta-label { color: var(--text-tertiary); font-size: 0.85rem; }
 .meta-value { color: var(--text-primary); font-size: 0.9rem; font-weight: 550; text-align: right; }
 
-/* ==================== 🆕 ZONA DE ACCIONES ==================== */
+/* ==================== ZONA DE ACCIONES ==================== */
 .tarea-actions {
   display: flex;
   flex-wrap: wrap;
@@ -160,7 +206,7 @@
   border-top: 1px solid var(--border-color);
 }
 
-/* ==================== 🆕 MODAL DE SUBIDA ==================== */
+/* ==================== MODAL DE SUBIDA ==================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -232,7 +278,7 @@
   background-color: var(--bg-secondary);
 }
 
-/* ==================== 🆕 DROP ZONE ==================== */
+/* ==================== DROP ZONE ==================== */
 .drop-zone {
   border: 2px dashed var(--border-color);
   border-radius: 8px;
@@ -254,7 +300,7 @@
 .drop-zone-text { margin: 0.75rem 0 0.5rem; font-size: 0.95rem; color: var(--text-primary); }
 .drop-zone-formats { margin: 0; font-size: 0.8rem; opacity: 0.7; }
 
-/* ==================== 🆕 FILE PREVIEW ==================== */
+/* ==================== FILE PREVIEW ==================== */
 .file-preview {
   display: flex;
   align-items: center;
@@ -270,7 +316,7 @@
 
 .file-size { color: var(--text-tertiary); font-size: 0.8rem; margin-left: auto; }
 
-/* ==================== 🆕 ERROR DE SUBIDA ==================== */
+/* ==================== ERROR DE SUBIDA ==================== */
 .upload-error {
   margin-top: 1rem;
   padding: 0.75rem;
@@ -279,4 +325,14 @@
   border-radius: 6px;
   color: var(--error-color);
   font-size: 0.9rem;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 640px) {
+  .tareas-page { padding: 1rem 0.75rem; }
+  .page-header h1 { font-size: 1.6rem; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar-group { width: 100%; }
+  .year-select { width: 100%; }
+  .btn--ghost { width: 100%; justify-content: center; }
 }

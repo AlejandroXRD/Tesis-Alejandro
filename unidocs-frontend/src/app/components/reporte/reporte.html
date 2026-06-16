@@ -66,23 +66,23 @@
   <div class="reporte-workspace" *ngIf="cursoSeleccionado()">
 
     <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="toolbar-group">
-        <select (change)="filterByYear($event)" class="year-select">
-          <option value="0">Todos los años</option>
-          <option value="1">1er año</option>
-          <option value="2">2do año</option>
-          <option value="3">3er año</option>
-          <option value="4">4to año</option>
-          <option value="5">5to año</option>
-        </select>
-      </div>
-      <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
-        Cambiar curso
-      </button>
+        <div class="toolbar-group">
+      <select (change)="filterByYear($event)" class="year-select">
+        <option value="0">Todos los años</option>
+        <option value="1">1er año</option>
+        <option value="2">2do año</option>
+        <option value="3">3er año</option>
+        <option value="4">4to año</option>
+        <option value="5">5to año</option>
+      </select>
+
+      <select (change)="filterByPeriodo($event)" class="year-select"
+              [disabled]="periodosDisponibles().length === 0">
+        <option value="">Todos los períodos</option>
+        <option *ngFor="let p of periodosDisponibles()" [value]="p">
+          {{ p }}
+        </option>
+      </select>
     </div>
 
     <!-- Error global -->
@@ -217,7 +217,32 @@
               <span class="stat-label">Rechazadas</span>
             </div>
           </div>
+                    <!-- ── Gráficos ── -->
+          <div class="graficos-grid" *ngIf="reporte()">
 
+            <div class="grafico-card">
+              <h4 class="grafico-titulo">Tareas del colectivo</h4>
+              <div class="grafico-wrap">
+                <canvas baseChart
+                  [data]="chartEstados()"
+                  [options]="chartOpciones"
+                  type="bar">
+                </canvas>
+              </div>
+            </div>
+
+            <div class="grafico-card">
+              <h4 class="grafico-titulo">Tareas por profesor</h4>
+              <div class="grafico-wrap">
+                <canvas baseChart
+                  [data]="chartProfesores()"
+                  [options]="chartOpciones"
+                  type="bar">
+                </canvas>
+              </div>
+            </div>
+
+          </div>
           <div class="section-divider">
             <span>Profesores asignados</span>
           </div>

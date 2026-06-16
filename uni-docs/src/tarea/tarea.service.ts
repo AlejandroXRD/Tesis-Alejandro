@@ -7,7 +7,7 @@ import * as path from 'path';
 
 @Injectable()
 export class TareaService {
-  private readonly uploadPath = path.join(process.cwd(), 'Uploads');
+  private readonly uploadPath = path.join(process.cwd(), 'Uploads' , 'Tareas');
 
   constructor(private prisma: PrismaService) {
     if (!fs.existsSync(this.uploadPath)) {

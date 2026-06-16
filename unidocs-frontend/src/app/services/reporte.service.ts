@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { ApiService } from './api.service';
 
 export interface TareaReporte {
   nombreTarea: string;
@@ -34,11 +33,10 @@ export interface ReporteColectivo {
   providedIn: 'root'
 })
 export class ReporteService {
-  private readonly apiUrl = `http://localhost:3000/reporte`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private api: ApiService) {}
 
   getReport(colectivoId: string): Observable<ReporteColectivo> {
-    return this.http.get<ReporteColectivo>(`${this.apiUrl}/${colectivoId}`);
+    return this.api.get<ReporteColectivo>(`/reporte/${colectivoId}`);
   }
 }

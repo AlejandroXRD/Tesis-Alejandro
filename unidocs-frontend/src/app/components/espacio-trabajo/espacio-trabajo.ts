@@ -1,293 +1,217 @@
-import { Component, inject, OnInit, ViewChild, ElementRef } from '@angular/core';
+// src/app/components/espacio-trabajo/espacio-trabajo.ts
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, ElementRef, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { HttpClient } from '@angular/common/http';
+import { UploadsService, WorkspaceFile, Category } from '../../services/uploads.service';
 
-interface FileDocument {
-  id: string;
-  name: string;
-  uploadedAt: Date;
-  uploadedBy: string;
-  size: number;
-  url: string;
-}
+const ALLOWED_ROLES_UPLOAD = new Set(['ADMIN', 'DECANO_VICEDECANO']);
 
 @Component({
   selector: 'app-espacio-trabajo',
   standalone: true,
   imports: [CommonModule],
-  styleUrl: "./espacio-trabajo.css",
-  templateUrl: "./espacio-trabajo.html"
+  templateUrl: './espacio-trabajo.html',
+  styleUrl: './espacio-trabajo.css',
+  changeDetection: ChangeDetectionStrategy.Default,
 })
 export class EspacioTrabajoComponent implements OnInit {
-  private authService = inject(AuthService);
-  private router = inject(Router);
-  private httpClient = inject(HttpClient);
 
-  @ViewChild('fileInput') fileInput!: ElementRef;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  showModal = false;
-  currentSection: 'graficos' | 'modelos' | 'planificacion' | null = null;
-  currentFiles: FileDocument[] = [];
-  filesCounts: { [key: string]: number } = {
-    graficos: 0,
-    modelos: 0,
-    planificacion: 0
-  };
-
+  // ── Estado del usuario ──
   private userRole: string = '';
 
+  // ── Modal ──
+  showModal       = false;
+  currentCategory: Category | null = null;
+  currentFiles:    WorkspaceFile[] = [];
+  loadingFiles     = false;
+  uploadingFiles   = false;
+  errorMsg         = '';
+
+  // ── Contadores por categoría ──
+  filesCounts: Record<Category, number> = {
+    graficos:      0,
+    modelos:       0,
+    planificacion: 0,
+  };
+
+  constructor(
+    private router:  Router,
+    private uploads: UploadsService,
+    private cdr:     ChangeDetectorRef,
+  ) {
+    const user   = JSON.parse(localStorage.getItem('user') || 'null');
+    const rolRaw = (user?.rol ?? '').toString();
+    this.userRole = rolRaw.toUpperCase().replace(/\s+/g, '_').trim();
+  }
+
   ngOnInit(): void {
-    // Validar que el usuario esté autenticado
-    if (!this.authService.isAuthenticated()) {
-      this.router.navigate(['/home']);
-      return;
-    }
-
-    // Obtener el rol del usuario
-    this.userRole = this.authService.getUserRole() || '';
-
-    // Cargar los conteos de archivos
-    this.loadFilesCounts();
+    this.refreshAllCounts();
   }
 
-  /**
-   * Carga el conteo de archivos de cada sección
-   */
-  private loadFilesCounts(): void {
-    this.loadFilesCount('graficos');
-    this.loadFilesCount('modelos');
-    this.loadFilesCount('planificacion');
-  }
-
-  /**
-   * Carga el conteo de archivos de una sección específica
-   */
-  private loadFilesCount(section: string): void {
-    const folderName = this.getFolderName(section);
-    this.httpClient.get<any>(`/api/uploads/${folderName}/count`)
-      .subscribe({
-        next: (response) => {
-          this.filesCounts[section] = response.count || 0;
-        },
-        error: (error) => {
-          console.error(`Error loading file count for ${section}:`, error);
-          this.filesCounts[section] = 0;
-        }
+  // ── Actualiza contadores de las 3 categorías ────────────────
+  private refreshAllCounts(): void {
+    (['graficos', 'modelos', 'planificacion'] as Category[]).forEach(cat => {
+      this.uploads.listFiles(cat).subscribe({
+        next:  files => (this.filesCounts[cat] = files.length),
+        error: ()    => (this.filesCounts[cat] = 0),
       });
-  }
-
-  /**
-   * Abre el modal con los archivos de una sección
-   */
-  openDocuments(section: 'graficos' | 'modelos' | 'planificacion'): void {
-    this.currentSection = section;
-    this.showModal = true;
-    this.loadFiles(section);
-  }
-
-  /**
-   * Cierra el modal
-   */
-  closeModal(): void {
-    this.showModal = false;
-    this.currentSection = null;
-    this.currentFiles = [];
-  }
-
-  /**
-   * Carga los archivos de una sección
-   */
-  private loadFiles(section: string): void {
-    const folderName = this.getFolderName(section);
-    this.httpClient.get<FileDocument[]>(`/api/uploads/${folderName}`)
-      .subscribe({
-        next: (files) => {
-          this.currentFiles = files.map(file => ({
-            ...file,
-            uploadedAt: new Date(file.uploadedAt)
-          }));
-        },
-        error: (error) => {
-          console.error(`Error loading files from ${section}:`, error);
-          this.currentFiles = [];
-        }
-      });
-  }
-
-  /**
-   * Obtiene el nombre de la carpeta según la sección
-   */
-  private getFolderName(section: string): string {
-    const folderMap: { [key: string]: string } = {
-      graficos: 'Uploads Graficos',
-      modelos: 'Uploads Modelos',
-      planificacion: 'Uploads Planificacion'
-    };
-    return folderMap[section] || '';
-  }
-
-  /**
-   * Obtiene el título del modal según la sección
-   */
-  getModalTitle(): string {
-    const titleMap: { [key: string]: string } = {
-      graficos: 'Gráficos Docentes',
-      modelos: 'Modelos de Trabajo',
-      planificacion: 'Planificación'
-    };
-    return titleMap[this.currentSection || ''] || '';
-  }
-
-  /**
-   * Verifica si el usuario puede subir archivos (Decano o Vicedecano)
-   */
-  canUploadFiles(): boolean {
-    return this.userRole === 'Decano' || this.userRole === 'Vicedecano';
-  }
-
-  /**
-   * Verifica si el usuario puede eliminar archivos (Decano o Vicedecano)
-   */
-  canDeleteFiles(): boolean {
-    return this.userRole === 'Decano' || this.userRole === 'Vicedecano';
-  }
-
-  /**
-   * Activa el input de archivo
-   */
-  triggerUpload(): void {
-    this.fileInput.nativeElement.click();
-  }
-
-  /**
-   * Maneja la subida de archivos
-   */
-  uploadFile(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
-
-    if (!files || files.length === 0) {
-      return;
-    }
-
-    Array.from(files).forEach(file => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('uploadedBy', this.authService.getCurrentUser()?.name || 'Unknown');
-
-      const folderName = this.getFolderName(this.currentSection || '');
-      
-      this.httpClient.post(`/api/uploads/${folderName}`, formData)
-        .subscribe({
-          next: (response: any) => {
-            console.log('File uploaded successfully:', response);
-            // Recargar la lista de archivos
-            if (this.currentSection) {
-              this.loadFiles(this.currentSection);
-              this.loadFilesCount(this.currentSection);
-            }
-          },
-          error: (error) => {
-            console.error('Error uploading file:', error);
-            alert('Error al subir el archivo. Intenta de nuevo.');
-          }
-        });
     });
-
-    // Limpiar el input
-    input.value = '';
   }
 
-  /**
-   * Descarga un archivo
-   */
-  downloadFile(file: FileDocument): void {
-    const link = document.createElement('a');
-    link.href = file.url;
-    link.download = file.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  /**
-   * Elimina un archivo
-   */
-  deleteFile(fileId: string): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este archivo?')) {
-      this.httpClient.delete(`/api/uploads/${fileId}`)
-        .subscribe({
-          next: () => {
-            console.log('File deleted successfully');
-            // Recargar la lista de archivos
-            if (this.currentSection) {
-              this.loadFiles(this.currentSection);
-              this.loadFilesCount(this.currentSection);
-            }
-          },
-          error: (error) => {
-            console.error('Error deleting file:', error);
-            alert('Error al eliminar el archivo. Intenta de nuevo.');
-          }
-        });
-    }
-  }
-
-  /**
-   * Obtiene el icono emoji según el tipo de archivo
-   */
-  getFileIcon(fileName: string): string {
-    const extension = fileName.split('.').pop()?.toLowerCase() || '';
-    
-    const iconMap: { [key: string]: string } = {
-      pdf: '📄',
-      doc: '📘',
-      docx: '📘',
-      xls: '📊',
-      xlsx: '📊',
-      ppt: '🎯',
-      pptx: '🎯',
-      zip: '📦',
-      rar: '📦',
-      jpg: '🖼️',
-      jpeg: '🖼️',
-      png: '🖼️',
-      gif: '🖼️',
-      txt: '📝',
-      csv: '📋'
-    };
-
-    return iconMap[extension] || '📎';
-  }
-
-  /**
-   * Formatea la fecha al español
-   */
-  formatDate(date: Date): string {
-    const d = new Date(date);
-    const options: Intl.DateTimeFormatOptions = {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    };
-    return d.toLocaleDateString('es-ES', options);
-  }
-
-  /**
-   * Navega a una sección
-   */
-  goToSection(section: string): void {
-    this.router.navigate([`/${section}`]);
-  }
-
-  /**
-   * Vuelve al inicio
-   */
+  // ── Navegación ──────────────────────────────────────────────
   goHome(): void {
-    this.router.navigate(['/home']);
+    this.router.navigate(['/']);
+  }
+
+  // ── Modal ───────────────────────────────────────────────────
+  openDocuments(category: Category): void {
+    this.currentCategory = category;
+    this.currentFiles    = [];
+    this.errorMsg        = '';
+    this.showModal       = true;
+    this.loadFiles(category);
+  }
+
+  private loadFiles(category: Category): void {
+    this.loadingFiles = true;
+    this.cdr.detectChanges();
+    this.uploads.listFiles(category).subscribe({
+      next: files => {
+        this.currentFiles = [...files]; // nuevo array para forzar detección
+        this.loadingFiles = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMsg     = 'Error al cargar los archivos. Intenta de nuevo.';
+        this.loadingFiles = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  closeModal(): void {
+    this.showModal       = false;
+    this.currentCategory = null;
+    this.currentFiles    = [];
+    this.errorMsg        = '';
+  }
+
+  getModalTitle(): string {
+    const titles: Record<Category, string> = {
+      graficos:      'Gráficos Docentes',
+      modelos:       'Modelos de Trabajo',
+      planificacion: 'Planificación',
+    };
+    return this.currentCategory ? titles[this.currentCategory] : '';
+  }
+
+  // ── Permisos ────────────────────────────────────────────────
+  canUploadFiles():             boolean { return ALLOWED_ROLES_UPLOAD.has(this.userRole); }
+  canDeleteFiles():             boolean { return ALLOWED_ROLES_UPLOAD.has(this.userRole); }
+  canDownloadFile(_f: WorkspaceFile): boolean { return true; } // todos descargan
+
+  // ── Subida ──────────────────────────────────────────────────
+  triggerUpload(): void {
+    this.fileInput?.nativeElement.click();
+  }
+
+  uploadFile(event: Event): void {
+    if (!this.canUploadFiles() || !this.currentCategory) return;
+
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    if (files.length === 0) return;
+
+    this.uploadingFiles = true;
+    this.errorMsg       = '';
+
+    this.uploads.uploadFiles(this.currentCategory, files).subscribe({
+      next: () => {
+        this.uploadingFiles = false;
+        input.value = '';
+        this.loadFiles(this.currentCategory!);
+        this.refreshAllCounts();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.uploadingFiles = false;
+        this.errorMsg = 'Error al subir el archivo. Intenta de nuevo.';
+        input.value = '';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Descarga ────────────────────────────────────────────────
+  downloadFile(file: WorkspaceFile): void {
+    if (!this.currentCategory) return;
+
+    this.uploads.downloadFile(this.currentCategory, file.name).subscribe({
+      next: blob => {
+        const url    = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href     = url;
+        anchor.download = file.name;
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.errorMsg = 'Error al descargar el archivo.';
+      },
+    });
+  }
+
+  // ── Eliminar ────────────────────────────────────────────────
+  deleteFile(filename: string): void {
+    if (!this.canDeleteFiles() || !this.currentCategory) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar "${filename}"?`)) return;
+
+    this.uploads.deleteFile(this.currentCategory, filename).subscribe({
+      next: () => {
+        this.loadFiles(this.currentCategory!);
+        this.refreshAllCounts();
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMsg = 'Error al eliminar el archivo.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  // ── Utilidades ──────────────────────────────────────────────
+  getFileIcon(fileName: string): string {
+    const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
+    const icons: Record<string, string> = {
+      pdf:  '📄',
+      doc:  '📝', docx: '📝',
+      xls:  '📊', xlsx: '📊',
+      ppt:  '📋', pptx: '📋',
+      png:  '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', webp: '🖼️',
+      zip:  '🗜️', rar: '🗜️',
+      txt:  '📃',
+      csv:  '📊',
+    };
+    return icons[ext] ?? '📁';
+  }
+
+  formatDate(isoString: string): string {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleDateString('es-ES', {
+      day:    '2-digit',
+      month:  'short',
+      year:   'numeric',
+      hour:   '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  formatSize(bytes: number): string {
+    if (bytes < 1024)        return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 }

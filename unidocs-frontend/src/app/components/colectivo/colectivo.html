@@ -77,13 +77,20 @@
           Eliminar
         </button>
         <select (change)="filterByYear($event)" name="Filtrar por año">
-          <option value="0">Ver todos</option>
+          <option value="0">Ver todos los años</option>
           <option value="1">1er año</option>
           <option value="2">2do año</option>
           <option value="3">3er año</option>
           <option value="4">4to año</option>
           <option value="5">5to año</option>
         </select>
+
+        <select (change)="filterByPeriodo($event)" [disabled]="periodosDisponibles().length === 0">
+    <option value="">Todos los períodos</option>
+    <option *ngFor="let p of periodosDisponibles()" [value]="p">
+      {{ periodoLabel(p) }}
+    </option>
+  </select>
       </div>
       <button type="button" class="btn btn--ghost" (click)="volverASeleccion()">Cambiar curso</button>
     </div>

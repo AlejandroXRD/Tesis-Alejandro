@@ -1,17 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { ReporteService } from './reporte.service';
-import { CreateReporteDto } from './dto/create-reporte.dto';
-import { UpdateReporteDto } from './dto/update-reporte.dto';
-import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { JwtAuthGuard } from 'src/jwt/jwt-auth-guard';
 
 @Controller('reporte')
 export class ReporteController {
   constructor(private readonly reporteService: ReporteService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  // @UseGuards(AuthGuard)
-  getReport(@Param('id') id: string) {
-    return this.reporteService.getReport(id);
+  getReport(@Param('id') id: string, @Req() req: any) {
+    return this.reporteService.getReport(id, req.user);
   }
 
 }

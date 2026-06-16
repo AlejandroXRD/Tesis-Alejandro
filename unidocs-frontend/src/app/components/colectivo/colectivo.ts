@@ -59,8 +59,10 @@ export class ColectivoComponent implements OnInit {
   cargandoProfesores   = signal<boolean>(false);
 
   // Estado privado
-  private colectivos        = signal<Colectivo[]>([]);
-  anioFiltro                = signal<number>(0);
+  private colectivos = signal<Colectivo[]>([]);
+  anioFiltro         = signal<number>(0);
+  periodoFiltro      = signal<string>('');
+
   private todosLosProfesores: Profesor[] = [];
 
   first = signal<number>(0);
@@ -82,7 +84,19 @@ export class ColectivoComponent implements OnInit {
     let res = this.colectivos().filter(c => c.modalidad === curso);
     const anio = this.anioFiltro();
     if (anio !== 0) res = res.filter(c => c.year === anio);
+    const periodo = this.periodoFiltro();
+    if (periodo) res = res.filter(c => (c as any).periodo === periodo);
     return res;
+  });
+
+  periodosDisponibles = computed(() => {
+    const curso = this.cursoSeleccionado();
+    if (!curso) return [];
+    return this.colectivos()
+      .filter(c => c.modalidad === curso)
+      .map(c => (c as any).periodo as string)
+      .filter((v, i, a) => v && a.indexOf(v) === i)
+      .sort();
   });
 
   colectivosPaginados = computed(() => {
@@ -122,6 +136,7 @@ export class ColectivoComponent implements OnInit {
   seleccionarCurso(curso: Curso): void {
     this.cursoSeleccionado.set(curso);
     this.anioFiltro.set(0);
+    this.periodoFiltro.set('');
     this.first.set(0);
     this.rows.set(5);
     this.error.set('');
@@ -175,10 +190,24 @@ export class ColectivoComponent implements OnInit {
     }
   }
 
+  filterByPeriodo(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.periodoFiltro.set(target.value);
+    this.first.set(0);
+    this.rows.set(5);
+    const actualVisible = this.colectivosFiltrados().some(
+      c => c.colectivoId === this.colectivoActivo()?.colectivoId
+    );
+    if (!actualVisible) {
+      this.colectivoActivo.set(this.colectivosFiltrados()[0] ?? null);
+    }
+  }
+
   volverASeleccion(): void {
     this.cursoSeleccionado.set(null);
     this.colectivoActivo.set(null);
     this.anioFiltro.set(0);
+    this.periodoFiltro.set('');
     this.mensaje.set('');
     this.error.set('');
   }
@@ -412,7 +441,6 @@ export class ColectivoComponent implements OnInit {
     return periodo === 'PRIMERO' ? 'Primer período' : 'Segundo período';
   }
 
-  /** Expone el período del colectivo activo sin bracket notation en el template */
   get periodoActivo(): string | null {
     return (this.colectivoActivo() as any)?.periodo ?? null;
   }

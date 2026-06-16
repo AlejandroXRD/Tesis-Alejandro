@@ -1,168 +1,256 @@
-    <section class="tarea-page container">
-      <!-- Header -->
-      <header class="page-header">
-        <div class="header-inner">
-          <span class="eyebrow">
-            <span class="eyebrow-dot"></span>
-            Gestión de Tareas
-          </span>
-          <h1>Crear Nueva Tarea</h1>
-          <p class="subtitle">Asigna una tarea a un profesor existente en el sistema.</p>
-        </div>
-        <div class="header-deco" aria-hidden="true"></div>
-      </header>
+<section class="tarea-page container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-inner">
+      <span class="eyebrow">
+        <span class="eyebrow-dot"></span>
+        Gestión de Tareas
+      </span>
+      <h1>Crear Nueva Tarea</h1>
+      <p class="subtitle">Asigna una tarea a un profesor existente en el sistema.</p>
+    </div>
+    <div class="header-deco" aria-hidden="true"></div>
+  </header>
 
-      <!-- Contenido principal -->
-      <div class="tarea-container">
-        <!-- Formulario de creación -->
-        <section class="form-section">
-          <div class="form-card">
-            <h2>Nueva Tarea</h2>
+  <!-- Contenido principal -->
+  <div class="tarea-container">
+    <!-- Formulario de creación -->
+    <section class="form-section">
+      <div class="form-card">
+        <h2>Nueva Tarea</h2>
 
-            <form (ngSubmit)="onSubmit()" class="form-content">
-              <!-- Nombre de la tarea -->
-              <div class="form-group">
-                <label for="nombreTarea" class="form-label">
-                  Nombre de la tarea
-                  <span class="required">*</span>
-                </label>
-                <input
-                  id="nombreTarea"
-                  type="text"
-                  [(ngModel)]="form.nombreTarea"
-                  name="nombreTarea"
-                  class="form-input"
-                  placeholder="Ej: Revisar documentos"
-                  required
-                />
-                <span class="form-hint">Breve título de la tarea</span>
-              </div>
-
-              <!-- Descripción -->
-              <div class="form-group">
-                <label for="descripcion" class="form-label">
-                  Descripción
-                  <span class="required">*</span>
-                </label>
-                <textarea
-                  id="descripcion"
-                  [(ngModel)]="form.descripcion"
-                  name="descripcion"
-                  class="form-input form-textarea"
-                  placeholder="Describe la tarea en detalle"
-                  rows="4"
-                  required
-                ></textarea>
-                <span class="form-hint">Detalle sobre qué debe hacer el profesor</span>
-              </div>
-
-              <!-- Colectivo -->
-              <div class="form-group">
-                <label for="colectivoId" class="form-label">
-                  Colectivo
-                  <span class="required">*</span>
-                </label>
-                <select
-                  id="colectivoId"
-                  [(ngModel)]="form.colectivoId"
-                  name="colectivoId"
-                  class="form-input form-select"
-                  required
-                  (ngModelChange)="onColectivoChange($event)"
-                >
-                  <option value="">Selecciona un colectivo</option>
-                  <option *ngFor="let c of colectivos" [value]="c.colectivoId">
-                    {{ c.nombreColectivo }} ({{ c.year }}) {{c.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro'}} - Período: {{ c.periodo }}
-                  </option>
-                </select>
-                <span class="form-hint">Selecciona el colectivo para cargar sus profesores</span>
-              </div>
-
-              <!-- Profesor -->
-              <div class="form-group">
-                <label for="profesorId" class="form-label">
-                  Profesor
-                  <span class="required">*</span>
-                </label>
-                <select
-                  id="profesorId"
-                  [(ngModel)]="form.profesorId"
-                  name="profesorId"
-                  class="form-input form-select"
-                  required
-                >
-                  <option value="">Selecciona un profesor</option>
-                  <option *ngFor="let profesor of profesores" [value]="profesor.userId">
-                    {{ profesor.userName }} {{ profesor.apellido }}
-                  </option>
-                </select>
-                <span class="form-hint">Selecciona el profesor responsable de la tarea</span>
-              </div>
-
-              <!-- Fecha límite -->
-              <div class="form-group">
-                <label for="fechaLimite" class="form-label">
-                  Fecha límite
-                  <span class="required">*</span>
-                </label>
-                <input
-                  id="fechaLimite"
-                  type="datetime-local"
-                  [(ngModel)]="form.fechaLimite"
-                  name="fechaLimite"
-                  class="form-input"
-                  required
-                />
-                <span class="form-hint">Fecha y hora límite para completar la tarea</span>
-              </div>
-
-              <!-- Botones -->
-              <div class="form-actions">
-                <button
-                  type="button"
-                  class="btn btn--secondary"
-                  (click)="onCancel()"
-                  [disabled]="isLoading"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  class="btn btn--primary"
-                  [disabled]="isLoading || !isFormValid()"
-                >
-                  <span *ngIf="!isLoading">Crear Tarea</span>
-                  <span *ngIf="isLoading">Creando...</span>
-                </button>
-              </div>
-
-              <!-- Mensajes -->
-              <div *ngIf="errorMessage" class="message-error" role="alert">
-                {{ errorMessage }}
-              </div>
-              <div *ngIf="successMessage" class="message-success" role="alert">
-                {{ successMessage }}
-              </div>
-            </form>
+        <form (ngSubmit)="onSubmit()" class="form-content">
+          <!-- Nombre de la tarea -->
+          <div class="form-group">
+            <label for="nombreTarea" class="form-label">
+              Nombre de la tarea
+              <span class="required">*</span>
+            </label>
+            <input
+              id="nombreTarea"
+              type="text"
+              [(ngModel)]="form.nombreTarea"
+              name="nombreTarea"
+              class="form-input"
+              placeholder="Ej: Revisar documentos"
+              required
+            />
+            <span class="form-hint">Breve título de la tarea</span>
           </div>
-        </section>
 
-        <!-- Información sobre carga -->
-        <aside class="info-section" *ngIf="profesores.length === 0 && !loadingProfesores">
-          <div class="info-card">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <h3>No hay profesores disponibles</h3>
-            <p>Por favor, crea profesores en el sistema antes de asignar tareas.</p>
+          <!-- Descripción -->
+          <div class="form-group">
+            <label for="descripcion" class="form-label">
+              Descripción
+              <span class="required">*</span>
+            </label>
+            <textarea
+              id="descripcion"
+              [(ngModel)]="form.descripcion"
+              name="descripcion"
+              class="form-input form-textarea"
+              placeholder="Describe la tarea en detalle"
+              rows="4"
+              required
+            ></textarea>
+            <span class="form-hint">Detalle sobre qué debe hacer el profesor</span>
           </div>
-        </aside>
 
-        <aside class="info-section" *ngIf="loadingProfesores">
-          <div class="info-card loading">
-            <div class="spinner"></div>
-            <p>Cargando profesores...</p>
+          <!-- Colectivo -->
+          <div class="form-group">
+            <label for="colectivoId" class="form-label">
+              Colectivo
+              <span class="required">*</span>
+            </label>
+            <select
+              id="colectivoId"
+              [(ngModel)]="form.colectivoId"
+              name="colectivoId"
+              class="form-input form-select"
+              required
+              (ngModelChange)="onColectivoChange($event)"
+            >
+              <option value="">Selecciona un colectivo</option>
+              <option *ngFor="let c of colectivos()" [value]="c.colectivoId">
+                {{ c.nombreColectivo }} ({{ c.year }}) {{c.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro'}} - Período: {{ c.periodo }}
+              </option>
+            </select>
+            <span class="form-hint">Selecciona el colectivo para cargar sus profesores</span>
           </div>
-        </aside>
+
+          <!-- Profesor -->
+          <div class="form-group">
+            <label for="profesorId" class="form-label">
+              Profesor
+              <span class="required">*</span>
+            </label>
+            <select
+              id="profesorId"
+              [(ngModel)]="form.profesorId"
+              name="profesorId"
+              class="form-input form-select"
+              required
+            >
+              <option value="">Selecciona un profesor</option>
+              <option *ngFor="let profesor of profesores()" [value]="profesor.userId">
+                {{ profesor.userName }} {{ profesor.apellido }}
+              </option>
+            </select>
+            <span class="form-hint">Selecciona el profesor responsable de la tarea</span>
+          </div>
+
+          <!-- Fecha límite -->
+          <div class="form-group">
+            <label for="fechaLimite" class="form-label">
+              Fecha límite
+              <span class="required">*</span>
+            </label>
+            <input
+              id="fechaLimite"
+              type="datetime-local"
+              [(ngModel)]="form.fechaLimite"
+              name="fechaLimite"
+              class="form-input"
+              [class.form-input-error]="isFechaEnPasado()"
+              [attr.min]="getMinFecha()"
+              required
+            />
+            <span class="form-hint" *ngIf="!isFechaEnPasado()">Fecha y hora límite para completar la tarea</span>
+            <span class="form-hint-error" *ngIf="isFechaEnPasado()">
+              ⚠️ La fecha no puede ser en el pasado
+            </span>
+          </div>
+
+          <!-- Botones -->
+          <div class="form-actions">
+            <button
+              type="button"
+              class="btn btn--secondary"
+              (click)="onCancel()"
+              [disabled]="isLoading()"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="btn btn--primary"
+              [disabled]="isLoading() || !isFormValid()"
+            >
+              <span *ngIf="!isLoading()">Crear Tarea</span>
+              <span *ngIf="isLoading()">Creando...</span>
+            </button>
+          </div>
+
+          <!-- Mensajes -->
+          <div *ngIf="errorMessage()" class="message-error" role="alert">
+            {{ errorMessage() }}
+          </div>
+          <div *ngIf="successMessage()" class="message-success" role="alert">
+            {{ successMessage() }}
+          </div>
+        </form>
       </div>
     </section>
+
+    <!-- Panel de Profesores y PPA -->
+    <aside class="info-section">
+      <!-- Sin colectivo seleccionado -->
+      <div class="info-card empty" *ngIf="!colectivoSeleccionado() && !loadingProfesores()">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <h3>Selecciona un colectivo</h3>
+        <p>Elige un colectivo en el formulario para ver sus profesores y PPA disponibles.</p>
+      </div>
+
+      <!-- Cargando -->
+      <div class="info-card loading" *ngIf="loadingProfesores()">
+        <div class="spinner"></div>
+        <p>Cargando profesores y PPA...</p>
+      </div>
+
+      <!-- Con colectivo seleccionado -->
+      <ng-container *ngIf="colectivoSeleccionado() && !loadingProfesores()">
+        <!-- Header del colectivo -->
+        <div class="colectivo-header" *ngIf="colectivoSeleccionado() as colectivo">
+          <h3 class="colectivo-nombre">{{ colectivo.nombreColectivo }}</h3>
+          <div class="colectivo-meta">
+            <span class="meta-badge">{{ colectivo.year }}º año</span>
+            <span class="meta-badge">{{ colectivo.modalidad === 'DIURNO' ? 'Diurno' : 'Encuentro' }}</span>
+            <span class="meta-badge">{{ colectivo.periodo }}</span>
+          </div>
+        </div>
+
+        <!-- Lista de Profesores -->
+        <div class="profesores-list" *ngIf="profesoresFiltered().length > 0">
+          <h4 class="list-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Profesores
+            <span class="count">{{ profesoresFiltered().length }}</span>
+          </h4>
+          <div class="personas-grid">
+            <div 
+              class="profesor-card" 
+              *ngFor="let prof of profesoresFiltered()"
+              [class.selected]="form.profesorId === prof.userId"
+              (click)="selectProfesor(prof)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="selectProfesor(prof)"
+              (keydown.space)="selectProfesor(prof)"
+            >
+              <div class="profesor-avatar">{{ prof.userName.charAt(0).toUpperCase() }}</div>
+              <div class="profesor-info">
+                <p class="profesor-nombre">{{ prof.userName }} {{ prof.apellido }}</p>
+                <span class="profesor-rol profesor-badge">{{ getRolBadge(prof) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lista de PPA -->
+        <div class="ppa-list" *ngIf="ppaFiltered().length > 0">
+          <h4 class="list-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            PPA
+            <span class="count">{{ ppaFiltered().length }}</span>
+          </h4>
+          <div class="personas-grid">
+            <div 
+              class="profesor-card ppa-card" 
+              *ngFor="let ppa of ppaFiltered()"
+              [class.selected]="form.profesorId === ppa.userId"
+              (click)="selectProfesor(ppa)"
+              role="button"
+              tabindex="0"
+              (keydown.enter)="selectProfesor(ppa)"
+              (keydown.space)="selectProfesor(ppa)"
+            >
+              <div class="profesor-avatar ppa-avatar">{{ ppa.userName.charAt(0).toUpperCase() }}</div>
+              <div class="profesor-info">
+                <p class="profesor-nombre">{{ ppa.userName }} {{ ppa.apellido }}</p>
+                <span class="profesor-rol ppa-badge">{{ getRolBadge(ppa) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sin profesores ni PPA -->
+        <div class="empty-list" *ngIf="profesoresFiltered().length === 0 && ppaFiltered().length === 0">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>No hay profesores ni PPA disponibles en este colectivo.</p>
+        </div>
+      </ng-container>
+    </aside>
+  </div>
+</section>

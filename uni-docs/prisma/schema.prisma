@@ -32,6 +32,20 @@ enum estadoTarea {
   RECHAZADA  // ← AGREGUÉ RECHAZADA (en tu código estaba CANCELADA)
 }
 
+enum catDoc {
+  ATD
+  Adiestrado
+  Instructor
+  Asistente
+  Auxiliar
+  Titular
+}
+
+enum catCient{
+  Dr. C
+  M. Sc
+}
+
 model User {
   userId    String   @id @default(uuid())
   userName  String   @unique

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -14,19 +14,24 @@ interface TareaForm {
   colectivoId: string;
 }
 
+interface ProfesorConRol extends User {
+  esProfesor?: boolean;
+  esPPA?: boolean;
+}
+
 @Component({
   selector: 'app-tarea',
   standalone: true,
   imports: [CommonModule, FormsModule],
   styleUrl: "./crear-tarea.component.css",
-  templateUrl: "./crear-tarea.component.html"
-  
-  
+  templateUrl: "./crear-tarea.component.html",
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrearTareaComponent implements OnInit {
   private tareaService = inject(TareaService);
   private router = inject(Router);
   private colectivoService = inject(ColectivoService);
+  private cdr = inject(ChangeDetectorRef);
 
   form: TareaForm = {
     nombreTarea: '',
@@ -36,73 +41,131 @@ export class CrearTareaComponent implements OnInit {
     colectivoId: ''
   };
 
-  colectivos: Colectivo[] = [];
-  profesores: User[] = [];
+  // ── Signals ──
+  colectivos = signal<Colectivo[]>([]);
+  profesores = signal<ProfesorConRol[]>([]);
+  isLoading = signal(false);
+  loadingProfesores = signal(false);
+  errorMessage = signal('');
+  successMessage = signal('');
+  colectivoSeleccionado = signal<Colectivo | null>(null);
 
-  isLoading = false;
-  loadingProfesores = false;
-  errorMessage = '';
-  successMessage = '';
+  // ── Computed ──
+  profesoresFiltered = computed(() => {
+    return this.profesores().filter(p => p.esProfesor);
+  });
+
+  ppaFiltered = computed(() => {
+    return this.profesores().filter(p => p.esPPA);
+  });
 
   ngOnInit(): void {
     this.loadColectivos();
   }
 
   loadColectivos(): void {
-    this.errorMessage = '';
-    this.loadingProfesores = false;
+    this.errorMessage.set('');
+    this.loadingProfesores.set(false);
 
     this.colectivoService.getAllColectivos().subscribe({
       next: (colectivos: Colectivo[]) => {
-        this.colectivos = colectivos;
-        this.profesores = [];
+        this.colectivos.set(colectivos);
+        this.profesores.set([]);
+        this.cdr.markForCheck();
       },
       error: (error: unknown) => {
         console.error('Error loading colectivos:', error);
-        this.errorMessage = 'Error al cargar los colectivos';
+        this.errorMessage.set('Error al cargar los colectivos');
+        this.cdr.markForCheck();
       },
     });
   }
 
- onColectivoChange(colectivoId: string): void {
-  this.form.profesorId = '';
-  this.profesores = [];
+  onColectivoChange(colectivoId: string): void {
+    this.form.profesorId = '';
+    this.profesores.set([]);
+    this.colectivoSeleccionado.set(null);
 
-  if (!colectivoId) return;
+    if (!colectivoId) {
+      this.cdr.markForCheck();
+      return;
+    }
 
-  const selected = this.colectivos.find((c) => c.colectivoId === colectivoId);
-  const profesores = selected?.profesores ?? [];
+    // Mostrar estado de carga
+    this.loadingProfesores.set(true);
+    this.cdr.markForCheck();
 
-  this.profesores = profesores.map((p: any) => ({
-    userId: p.profesor.userId,           // ← Cambio aquí
-    userName: p.profesor.userName,       // ← Cambio aquí
-    apellido: p.profesor.apellido,       // ← Cambio aquí
-    rol: p.profesor.rol,                 // ← Puedes traerlo de aquí también
-    createdAt: p.createdAt,              // ← Este sí está en el nivel superior
-  }));
+    // Buscar el colectivo seleccionado
+    const selected = this.colectivos().find((c) => c.colectivoId === colectivoId);
+    
+    if (selected) {
+      this.colectivoSeleccionado.set(selected);
+      
+      // Mapear los profesores con su información
+      const profesoresConRol: ProfesorConRol[] = (selected?.profesores ?? []).map((p: any) => ({
+        userId: p.profesor.userId,
+        userName: p.profesor.userName,
+        apellido: p.profesor.apellido,
+        rol: p.profesor.rol,
+        createdAt: p.createdAt,
+        esProfesor: p.profesor.rol === 'PROFESOR',
+        esPPA: p.profesor.rol === 'PPA'
+      }));
 
-  console.log(this.profesores); // Para verificar que ahora tiene los datos
-}
+      this.profesores.set(profesoresConRol);
+      console.log('Profesores cargados:', profesoresConRol);
+    }
+
+    // Simular un pequeño delay para que se vea el estado de carga
+    setTimeout(() => {
+      this.loadingProfesores.set(false);
+      this.cdr.markForCheck();
+    }, 300);
+  }
 
   isFormValid(): boolean {
+    const now = new Date();
+    const fechaIngresada = this.form.fechaLimite ? new Date(this.form.fechaLimite) : null;
+
     return (
       this.form.nombreTarea.trim().length > 0 &&
       this.form.descripcion.trim().length > 0 &&
       this.form.fechaLimite.length > 0 &&
       this.form.colectivoId.length > 0 &&
-      this.form.profesorId.length > 0
+      this.form.profesorId.length > 0 &&
+      fechaIngresada !== null &&
+      fechaIngresada > now
     );
+  }
+
+  getMinFecha(): string {
+    const now = new Date();
+    // Formato: YYYY-MM-DDTHH:mm
+    return now.toISOString().slice(0, 16);
+  }
+
+  isFechaEnPasado(): boolean {
+    if (!this.form.fechaLimite) return false;
+    const now = new Date();
+    const fechaIngresada = new Date(this.form.fechaLimite);
+    return fechaIngresada <= now;
   }
 
   onSubmit(): void {
     if (!this.isFormValid()) {
-      this.errorMessage = 'Por favor completa todos los campos obligatorios';
+      if (this.isFechaEnPasado()) {
+        this.errorMessage.set('La fecha límite no puede ser en el pasado');
+      } else {
+        this.errorMessage.set('Por favor completa todos los campos obligatorios');
+      }
+      this.cdr.markForCheck();
       return;
     }
 
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.cdr.markForCheck();
 
     const createRequest: CreateTareaRequest = {
       nombreTarea: this.form.nombreTarea,
@@ -114,22 +177,24 @@ export class CrearTareaComponent implements OnInit {
 
     this.tareaService.createTarea(createRequest).subscribe({
       next: () => {
-        this.isLoading = false;
-        this.successMessage = 'Tarea creada exitosamente';
+        this.isLoading.set(false);
+        this.successMessage.set('Tarea creada exitosamente');
+        this.cdr.markForCheck();
         this.resetForm();
-        // Optional: redirect after success
+        
         setTimeout(() => {
           this.router.navigate(['/tareas']);
         }, 1500);
       },
       error: (error) => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         console.error('Error creating task:', error);
         if (error.error && error.error.message) {
-          this.errorMessage = error.error.message;
+          this.errorMessage.set(error.error.message);
         } else {
-          this.errorMessage = 'Error al crear la tarea. Intenta nuevamente.';
+          this.errorMessage.set('Error al crear la tarea. Intenta nuevamente.');
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -147,8 +212,22 @@ export class CrearTareaComponent implements OnInit {
       colectivoId: '',
       profesorId: ''
     };
-    this.profesores = [];
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.profesores.set([]);
+    this.colectivoSeleccionado.set(null);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.loadingProfesores.set(false);
+    this.cdr.markForCheck();
+  }
+
+  getRolBadge(profesor: ProfesorConRol): string {
+    if (profesor.esProfesor) return 'Profesor';
+    if (profesor.esPPA) return 'PPA';
+    return profesor.rol || 'Usuario';
+  }
+
+  selectProfesor(profesor: ProfesorConRol): void {
+    this.form.profesorId = profesor.userId;
+    this.cdr.markForCheck();
   }
 }

@@ -23,26 +23,58 @@
     Crear Tarea
   </button>
 
+  <!-- ── TOOLBAR DE FILTROS ── -->
+  <div class="toolbar" *ngIf="!loading && todasLasTareas().length > 0">
+    <div class="toolbar-group">
+
+      <select #selectEstado [(ngModel)]="estadoFiltro" (change)="filterByEstado($event)" class="year-select">
+        <option value="">Todos los estados</option>
+        <option value="PENDIENTE">Pendiente</option>
+        <option value="EN_REVISION">En revisión</option>
+        <option value="COMPLETADA">Completada</option>
+        <option value="RECHAZADA">Rechazada</option>
+      </select>
+
+      <select #selectProfesor [(ngModel)]="profesorFiltro" (change)="filterByProfesor($event)" class="year-select"
+              [disabled]="profesoresDisponibles().length === 0">
+        <option value="">Todos los profesores</option>
+        <option *ngFor="let p of profesoresDisponibles()" [value]="p">
+          {{ p }}
+        </option>
+      </select>
+
+      <button
+        type="button"
+        class="btn btn--ghost"
+        *ngIf="estadoFiltro() || profesorFiltro()"
+        (click)="resetFiltros()"
+      >
+        Limpiar filtros
+      </button>
+
+    </div>
+    <span class="count-badge" style="margin-left: auto;">
+      {{ tareas().length }} resultado{{ tareas().length !== 1 ? 's' : '' }}
+    </span>
+  </div>
+
   <section class="panel">
     <div class="panel-header">
       <h2>Mis Tareas</h2>
-      <span class="count-badge">{{ tareas.length }}</span>
+      <span class="count-badge">{{ tareas().length }}</span>
     </div>
 
     <div class="panel-body">
 
-      <!-- Cargando -->
       <div *ngIf="loading" class="loading-state" role="status">
         Cargando tareas...
       </div>
 
-      <!-- Error real (500, red, etc.) -->
       <div *ngIf="!loading && error" class="error-state" role="alert">
         {{ error }}
       </div>
 
-      <!-- Sin tareas asignadas (403 del backend o lista vacía) -->
-      <div *ngIf="!loading && !error && (sinTareasAsignadas || tareas.length === 0)" class="empty-state ">
+      <div *ngIf="!loading && !error && (sinTareasAsignadas || todasLasTareas().length === 0)" class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
           <rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -52,9 +84,19 @@
         <p>No tienes ninguna tarea asignada.</p>
       </div>
 
-      <!-- Lista de tareas -->
-      <div *ngIf="!loading && !error && tareas.length > 0" class="tareas-list">
-        <article class="tarea-card" *ngFor="let t of tareas">
+      <!-- Sin resultados por filtro -->
+      <div *ngIf="!loading && !error && todasLasTareas().length > 0 && tareas().length === 0" class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <p>No hay tareas que coincidan con los filtros aplicados.</p>
+        <button type="button" class="btn btn--ghost" (click)="resetFiltros()">
+          Limpiar filtros
+        </button>
+      </div>
+
+      <div *ngIf="!loading && !error && tareas().length > 0" class="tareas-list">
+        <article class="tarea-card" *ngFor="let t of tareas()">
           <div class="tarea-top">
             <h3 class="tarea-nombre">{{ t.nombreTarea }}</h3>
             <span class="estado-badge" [ngClass]="getEstadoClass(t.estado)">
@@ -81,9 +123,7 @@
             </div>
           </div>
 
-          <!-- ZONA DE ACCIONES SEGÚN ROL -->
           <div class="tarea-actions">
-            <!-- BOTÓN SUBIR ARCHIVO (PROFESOR y PPA) -->
             <button
               *ngIf="canUploadFiles()"
               class="btn btn--upload"
@@ -98,7 +138,6 @@
               {{ t.archivo ? 'Reemplazar Archivo' : 'Subir Archivos' }}
             </button>
 
-            <!-- BOTONES PARA ADMIN/JEFE/DECANO (solo si hay archivo) -->
             <ng-container *ngIf="canReviewFiles() && t.archivo">
               <button class="btn btn--download" (click)="downloadFile(t.tareaId)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -168,7 +207,6 @@
           o haz click para seleccionar
         </p>
         <p class="drop-zone-formats">Formatos: .pdf, .docx, .xlsx, .xls (máx 20MB)</p>
-
         <input
           #fileInput
           type="file"

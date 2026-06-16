@@ -1,13 +1,14 @@
-import { Component, OnInit, ChangeDetectorRef, inject, computed } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TareaService, Tarea } from '../../services/tarea.service';
+import { TareaService, Tarea, EstadoTarea } from '../../services/tarea.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-tareas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   styleUrl: './tareas.component.css',
   templateUrl: './tareas.component.html'
 })
@@ -19,10 +20,16 @@ export class TareasComponent implements OnInit {
 
   loading = false;
   error = '';
-  tareas: Tarea[] = [];
   sinTareasAsignadas = false;
 
-  // Estado del modal de subida
+  // ── Datos crudos ──
+  todasLasTareas = signal<Tarea[]>([]);
+
+  // ── Filtros ──
+  estadoFiltro   = signal<string>('');
+  profesorFiltro = signal<string>('');
+
+  // ── Estado del modal de subida ──
   showUploadModal = false;
   selectedTareaId: string | null = null;
   selectedFile: File | null = null;
@@ -34,6 +41,25 @@ export class TareasComponent implements OnInit {
 
   // Roles que ven TODAS las tareas
   private readonly rolesAdmin = new Set(['ADMIN', 'JEFE_DEPARTAMENTO', 'DECANO_VICEDECANO']);
+
+  // ── Computed ──
+  profesoresDisponibles = computed(() => {
+    return this.todasLasTareas()
+      .map(t => `${t.profesor.userName} ${t.profesor.apellido}`.trim())
+      .filter((v, i, a) => v && a.indexOf(v) === i)
+      .sort();
+  });
+
+  tareas = computed(() => {
+    let res = this.todasLasTareas();
+    const estado = this.estadoFiltro();
+    if (estado) res = res.filter(t => t.estado === estado);
+    const profesor = this.profesorFiltro();
+    if (profesor) res = res.filter(
+      t => `${t.profesor.userName} ${t.profesor.apellido}`.trim() === profesor
+    );
+    return res;
+  });
 
   ngOnInit(): void {
     this.cargarTareas();
@@ -52,15 +78,14 @@ export class TareasComponent implements OnInit {
 
     peticion$.subscribe({
       next: (data) => {
-        this.tareas = data ?? [];
+        this.todasLasTareas.set(data ?? []);
         this.loading = false;
         this.cd.detectChanges();
       },
       error: (err) => {
         this.loading = false;
         if (err.status === 403 || err.status === 404) {
-          // No es un error real — el usuario simplemente no tiene tareas asignadas
-          this.tareas = [];
+          this.todasLasTareas.set([]);
           this.sinTareasAsignadas = true;
         } else {
           console.error('❌ Error:', err);
@@ -69,6 +94,23 @@ export class TareasComponent implements OnInit {
         this.cd.detectChanges();
       }
     });
+  }
+
+  // ── Filtros ──────────────────────────────────────────────────
+
+  filterByEstado(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.estadoFiltro.set(target.value);
+  }
+
+  filterByProfesor(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.profesorFiltro.set(target.value);
+  }
+
+  resetFiltros(): void {
+    this.estadoFiltro.set('');
+    this.profesorFiltro.set('');
   }
 
   // ── Permisos por rol ──────────────────────────────────────────
@@ -123,7 +165,6 @@ export class TareasComponent implements OnInit {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
-
     const files = event.dataTransfer?.files;
     if (files && files.length > 0) {
       this.handleFile(files[0]);
@@ -199,7 +240,7 @@ export class TareasComponent implements OnInit {
 
   // ── Cambio de estado ──────────────────────────────────────────
 
-  cambiarEstado(tarea: Tarea, nuevoEstado: 'EN_REVISION' | 'COMPLETADA' | 'RECHAZADA'): void {
+  cambiarEstado(tarea: Tarea, nuevoEstado: EstadoTarea): void {
     this.tareaService.updateEstado(tarea.tareaId, nuevoEstado).subscribe({
       next: () => {
         this.cargarTareas();

@@ -3,15 +3,25 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ColectivoService, Colectivo } from '../../services/colectivo.service';
 import { ReporteService, ReporteColectivo } from '../../services/reporte.service';
+import { AuthService } from '../../services/auth.service';
 import { PaginatorModule, PaginatorState } from 'primeng/paginator';
 import * as ExcelJS from 'exceljs';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartData, ChartOptions } from 'chart.js';
+import {
+  Chart,
+  BarController, BarElement,
+  CategoryScale, LinearScale,
+  Tooltip, Legend
+} from 'chart.js';
 
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 type Curso = 'DIURNO' | 'ENCUENTRO';
 
 @Component({
   selector: 'app-reporte',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginatorModule],
+  imports: [CommonModule, FormsModule, PaginatorModule, BaseChartDirective],
   templateUrl: './reporte.html',
   styleUrl: './reporte.css'
 })
@@ -20,6 +30,7 @@ export class ReporteComponent implements OnInit {
   // ── Curso / lista ──
   cursoSeleccionado = signal<Curso | null>(null);
   anioFiltro = signal<number>(0);
+  periodoFiltro = signal<string>('');
   private colectivos = signal<Colectivo[]>([]);
   colectivoActivo = signal<Colectivo | null>(null);
 
@@ -45,7 +56,20 @@ export class ReporteComponent implements OnInit {
     let res = this.colectivos().filter(c => c.modalidad === curso);
     const anio = this.anioFiltro();
     if (anio !== 0) res = res.filter(c => c.year === anio);
+    const periodo = this.periodoFiltro();
+    if (periodo) res = res.filter(c => c.periodo === periodo);
     return res;
+  });
+
+  periodosDisponibles = computed(() => {
+    const curso = this.cursoSeleccionado();
+    if (!curso) return [];
+    const periodos = this.colectivos()
+      .filter(c => c.modalidad === curso)
+      .map(c => c.periodo)
+      .filter((v, i, a) => v && a.indexOf(v) === i)
+      .sort();
+    return periodos;
   });
 
   colectivosPaginados = computed(() => {
@@ -65,30 +89,125 @@ export class ReporteComponent implements OnInit {
     };
   });
 
+  // ── Gráfico 1: tareas por estado ──
+  chartEstados = computed<ChartData<'bar'>>(() => {
+    const r = this.tareasResumen();
+    return {
+      labels: ['Completadas', 'Pendientes', 'Rechazadas'],
+      datasets: [{
+        label: 'Tareas',
+        data: [r.completadas, r.pendientes, r.vencidas],
+        backgroundColor: [
+          'rgba(16,185,129,0.75)',
+          'rgba(245,158,11,0.75)',
+          'rgba(239,68,68,0.75)',
+        ],
+        borderColor: [
+          '#059669',
+          '#d97706',
+          '#dc2626',
+        ],
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    };
+  });
+
+  // ── Gráfico 2: tareas por profesor ──
+  chartProfesores = computed<ChartData<'bar'>>(() => {
+    const r = this.reporte();
+    if (!r) return { labels: [], datasets: [] };
+    return {
+      labels: r.profesores.map(p => `${p.nombre} ${p.apellido ?? ''}`),
+      datasets: [
+        {
+          label: 'Completadas',
+          data: r.profesores.map(p => p.tareas.filter(t => t.estado === 'COMPLETADA').length),
+          backgroundColor: 'rgba(16,185,129,0.75)',
+          borderColor: '#059669',
+          borderWidth: 1.5,
+          borderRadius: 6,
+        },
+        {
+          label: 'Pendientes',
+          data: r.profesores.map(p => p.tareas.filter(t => t.estado === 'PENDIENTE').length),
+          backgroundColor: 'rgba(245,158,11,0.75)',
+          borderColor: '#d97706',
+          borderWidth: 1.5,
+          borderRadius: 6,
+        },
+        {
+          label: 'Rechazadas',
+          data: r.profesores.map(p => p.tareas.filter(t => t.estado === 'RECHAZADA').length),
+          backgroundColor: 'rgba(239,68,68,0.75)',
+          borderColor: '#dc2626',
+          borderWidth: 1.5,
+          borderRadius: 6,
+        },
+      ]
+    };
+  });
+
+  chartOpciones: ChartOptions<'bar'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1, precision: 0 },
+      }
+    }
+  };
+
   constructor(
     private colectivoService: ColectivoService,
-    private reporteService: ReporteService
+    private reporteService: ReporteService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {}
+
+  private isPpa(): boolean {
+    const user = this.authService.getUser();
+    return user?.rol === 'PPA';
+  }
+
+  private isProfesor(): boolean {
+    const user = this.authService.getUser();
+    return user?.rol === 'PROFESOR';
+  }
+
+  private isRestrictedRole(): boolean {
+    return this.isPpa() || this.isProfesor();
+  }
 
   // ── Selección de curso ──
   seleccionarCurso(curso: Curso): void {
     this.cursoSeleccionado.set(curso);
     this.anioFiltro.set(0);
+    this.periodoFiltro.set('');
     this.first.set(0);
     this.colectivoActivo.set(null);
     this.reporte.set(null);
     this.error.set('');
     this.cargandoColectivos.set(true);
 
-    const servicio$ = curso === 'DIURNO'
-      ? this.colectivoService.getAllDiurno()
-      : this.colectivoService.getAllEncuentro();
+    const isRestricted = this.isRestrictedRole();
+    const servicio$ = isRestricted
+      ? (curso === 'DIURNO'
+          ? this.colectivoService.getMisColectivosDiurno()
+          : this.colectivoService.getMisColectivosEncuentro())
+      : (curso === 'DIURNO'
+          ? this.colectivoService.getAllDiurno()
+          : this.colectivoService.getAllEncuentro());
 
     servicio$.subscribe({
       next: (datos) => {
-        this.colectivos.set(datos);
+        const colectivos = isRestricted ? (datos.colectivos ?? []) : datos;
+        this.colectivos.set(colectivos);
         this.cargandoColectivos.set(false);
       },
       error: () => {
@@ -103,6 +222,7 @@ export class ReporteComponent implements OnInit {
     this.colectivoActivo.set(null);
     this.reporte.set(null);
     this.anioFiltro.set(0);
+    this.periodoFiltro.set('');
     this.error.set('');
   }
 
@@ -140,6 +260,19 @@ export class ReporteComponent implements OnInit {
     }
   }
 
+  filterByPeriodo(event: Event): void {
+    const target = event.target as HTMLSelectElement;
+    this.periodoFiltro.set(target.value);
+    this.first.set(0);
+    const visible = this.colectivosFiltrados().some(
+      c => c.colectivoId === this.colectivoActivo()?.colectivoId
+    );
+    if (!visible) {
+      this.colectivoActivo.set(null);
+      this.reporte.set(null);
+    }
+  }
+
   toggleProfesor(index: number): void {
     this.profesorAbierto.set(this.profesorAbierto() === index ? null : index);
   }
@@ -155,7 +288,7 @@ export class ReporteComponent implements OnInit {
     switch (estado) {
       case 'COMPLETADA': return 'Completada';
       case 'PENDIENTE':  return 'Pendiente';
-      case 'RECHAZADA':    return 'RECHAZADA';
+      case 'RECHAZADA':  return 'RECHAZADA';
       default:           return estado;
     }
   }
@@ -164,7 +297,7 @@ export class ReporteComponent implements OnInit {
     return {
       'estado-completada': estado === 'COMPLETADA',
       'estado-pendiente':  estado === 'PENDIENTE',
-      'estado-rechazada':    estado === 'RECHAZADA',
+      'estado-rechazada':  estado === 'RECHAZADA',
     };
   }
 
@@ -183,22 +316,16 @@ export class ReporteComponent implements OnInit {
     workbook.creator = 'Tu App';
     workbook.created = new Date();
 
-    // ═══════════════════════════════════════════════
-    // HOJA 1 — Resumen del colectivo (con estilos)
-    // ═══════════════════════════════════════════════
     const wsResumen = workbook.addWorksheet('Resumen', {
       pageSetup: { fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
     });
 
-    // --- Estilos comunes ---
-    // FIX: eliminated duplicate "font" key by merging both font definitions into one
     const titleStyle: Partial<ExcelJS.Style> = {
       font: { bold: true, size: 14, name: 'Calibri', color: { argb: 'FFFFFFFF' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } },
     };
 
-    // FIX: eliminated duplicate "font" key by merging both font definitions into one
     const subtitleStyle: Partial<ExcelJS.Style> = {
       font: { bold: true, size: 12, name: 'Calibri', color: { argb: 'FFFFFFFF' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
@@ -216,7 +343,6 @@ export class ReporteComponent implements OnInit {
       border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
     };
 
-    // --- Insertar datos ---
     wsResumen.addRow(['REPORTE DE COLECTIVO ACADÉMICO']);
     wsResumen.addRow([reporte.colectivo.nombre]);
     wsResumen.addRow([`Generado el ${new Date().toLocaleDateString('es-ES', { dateStyle: 'long' })}`]);
@@ -233,7 +359,6 @@ export class ReporteComponent implements OnInit {
     wsResumen.addRow(['Pendientes', resumen.pendientes]);
     wsResumen.addRow(['Vencidas', resumen.vencidas]);
 
-    // --- Aplicar estilos y merges ---
     wsResumen.mergeCells('A1:B1');
     wsResumen.mergeCells('A2:B2');
     wsResumen.mergeCells('A3:B3');
@@ -273,9 +398,6 @@ export class ReporteComponent implements OnInit {
     wsResumen.getColumn(1).width = 30;
     wsResumen.getColumn(2).width = 40;
 
-    // ═══════════════════════════════════════════════
-    // HOJA 2 — Profesores y tareas (tabla profesional)
-    // ═══════════════════════════════════════════════
     const wsProfesores = workbook.addWorksheet('Profesores y Tareas');
 
     const headerStyle: Partial<ExcelJS.Style> = {
@@ -380,9 +502,6 @@ export class ReporteComponent implements OnInit {
 
     wsProfesores.views = [{ state: 'frozen', ySplit: 1 }];
 
-    // ═══════════════════════════════════════════════
-    // DESCARGAR ARCHIVO
-    // ═══════════════════════════════════════════════
     const nombreArchivo = `Reporte_${reporte.colectivo.nombre.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

@@ -17,7 +17,7 @@ import { JwtAuthGuard } from 'src/jwt/jwt-auth-guard';
 
 @Controller('tarea')
 export class TareaController {
-  private readonly uploadPath = path.join(process.cwd(), 'Uploads');
+  private readonly uploadPath = path.join(process.cwd(), 'Uploads', 'Tareas');
 
   constructor(private readonly tareaService: TareaService) {
     if (!fs.existsSync(this.uploadPath)) {
@@ -72,7 +72,7 @@ export class TareaController {
   @UseInterceptors(
     FileInterceptor('archivo', {
       storage: diskStorage({
-        destination: './Uploads',
+        destination: './Uploads/Tareas',
         filename: (req, file, cb) => {
           const tareaId = req.params.id;
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
