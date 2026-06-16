@@ -172,7 +172,59 @@
         <!-- Lista de archivos -->
         <div class="files-list" *ngIf="!loadingFiles && currentFiles.length > 0">
           <div class="file-item" *ngFor="let file of currentFiles">
-            <div class="file-item__icon">{{ getFileIcon(file.name) }}</div>
+            <div class="file-item__icon">
+              <!-- Word -->
+              <ng-container *ngIf="isWordFile(file.name); else pdfCheck">
+                <img [src]="getWordIconPath()" alt="Documento Word" class="file-icon-svg">
+              </ng-container>
+              
+              <!-- PDF -->
+              <ng-template #pdfCheck>
+                <ng-container *ngIf="isPDFFile(file.name); else excelCheck">
+                  <img [src]="getPDFIconPath()" alt="Documento PDF" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- Excel -->
+              <ng-template #excelCheck>
+                <ng-container *ngIf="isExcelFile(file.name); else pngCheck">
+                  <img [src]="getExcelIconPath()" alt="Documento Excel" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- PNG/Images -->
+              <ng-template #pngCheck>
+                <ng-container *ngIf="isPNGFile(file.name); else ppCheck">
+                  <img [src]="getPNGIconPath()" alt="Imagen" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- PowerPoint -->
+              <ng-template #ppCheck>
+                <ng-container *ngIf="isPPFile(file.name); else zipCheck">
+                  <img [src]="getPPIconPath()" alt="Presentación PowerPoint" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- ZIP/RAR -->
+              <ng-template #zipCheck>
+                <ng-container *ngIf="file.name.toLowerCase().endsWith('.zip') || file.name.toLowerCase().endsWith('.rar'); else txtCheck">
+                  <img [src]="getZIPconPath()" alt="Archivo comprimido" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- TXT -->
+              <ng-template #txtCheck>
+                <ng-container *ngIf="file.name.toLowerCase().endsWith('.txt'); else emojiIcon">
+                  <img [src]="getTxtconPath()" alt="Archivo de texto" class="file-icon-svg">
+                </ng-container>
+              </ng-template>
+              
+              <!-- Fallback emoji -->
+              <ng-template #emojiIcon>
+                <span class="emoji-icon">{{ getEmojiIcon(file.name) }}</span>
+              </ng-template>
+            </div>
             <div class="file-item__info">
               <p class="file-item__name">{{ file.name }}</p>
               <p class="file-item__meta">

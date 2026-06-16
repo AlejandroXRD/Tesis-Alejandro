@@ -27,7 +27,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Req() req: any) {
     // Verificar si el usuario autenticado es ADMIN (solo admins pueden actualizar usuarios)
-    if (req?.user?.rol?.toUpperCase() !== 'ADMIN') {
+    if (req?.user?.rol?.toUpperCase() !== 'ADMIN' && req?.user?.rol?.toUpperCase() !== 'DECANO_VICEDECANO') {
       throw new ForbiddenException('Solo administradores pueden actualizar usuarios');
     }
     return this.userService.update(id, updateUserDto);

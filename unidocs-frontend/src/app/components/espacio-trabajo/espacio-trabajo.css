@@ -450,3 +450,15 @@
   .upload-section { flex-direction: column; align-items: stretch; }
   .btn--upload { width: 100%; justify-content: center; }
 }
+
+.file-icon-svg {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+.emoji-icon {
+  font-size: 24px;
+  line-height: 1;
+}

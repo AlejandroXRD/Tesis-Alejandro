@@ -1,5 +1,6 @@
-import { IsInt, IsOptional, IsString, IsArray, IsUUID, ValidateNested } from "class-validator"
+import { IsInt, IsOptional, IsString, IsArray, IsUUID, ValidateNested, IsEnum } from "class-validator"
 import { Type } from 'class-transformer';
+import { Periodo } from "@prisma/client";
 
 class ProfessorAsignmentDto {
     @IsUUID()
@@ -17,6 +18,10 @@ export class UpdateColectivoDto {
     @IsInt()
     @IsOptional()
     year?: number
+
+    @IsEnum(Periodo)
+    @IsOptional()
+    periodo? : Periodo
 
     @IsArray()
     @ValidateNested({ each: true })

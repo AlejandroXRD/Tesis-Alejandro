@@ -210,6 +210,9 @@ export class ColectivoService {
     if (updateColectivoDto.nombreColectivo) {
       updateData.nombreColectivo = updateColectivoDto.nombreColectivo;
     }
+    if(updateColectivoDto.periodo){
+      updateData.periodo = updateColectivoDto.periodo;
+    }
 
     if (typeof updateColectivoDto.year === 'number') {
       updateData.year = updateColectivoDto.year;
