@@ -1,24 +1,32 @@
-import { IsString, IsOptional, IsDateString, IsEnum, IsUUID } from "class-validator"
-import { estadoTarea } from "@prisma/client"
+import { IsOptional, IsString, IsEnum } from 'class-validator';
+import { estadoTarea } from '@prisma/client';
 
 export class UpdateTareaDto {
-    @IsString()
-    @IsOptional()
-    nombreTarea?: string
+  @IsOptional()
+  @IsString()
+  nombreTarea?: string;
 
-    @IsString()
-    @IsOptional()
-    descripcion?: string
+  @IsOptional()
+  @IsString()
+  descripcion?: string;
 
-    @IsDateString()
-    @IsOptional()
-    fechaLimite?: string
+  @IsOptional()
+  @IsString()
+  fechaLimite?: string;
 
-    @IsEnum(estadoTarea)
-    @IsOptional()
-    estado?: estadoTarea
+  @IsOptional()
+  @IsEnum(estadoTarea)
+  estado?: estadoTarea;
 
-    @IsUUID('4')
-    @IsOptional()
-    profesorId?: string
+  @IsOptional()
+  @IsString()
+  profesorId?: string;
+
+  @IsOptional()
+  @IsString()
+  comentario?: string;
+
+  @IsOptional()
+  @IsString()
+  revisorNombre?: string;
 }

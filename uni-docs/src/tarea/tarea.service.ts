@@ -7,7 +7,7 @@ import * as path from 'path';
 
 @Injectable()
 export class TareaService {
-  private readonly uploadPath = path.join(process.cwd(), 'Uploads' , 'Tareas');
+  private readonly uploadPath = path.join(process.cwd(), 'Uploads', 'Tareas');
 
   constructor(private prisma: PrismaService) {
     if (!fs.existsSync(this.uploadPath)) {
@@ -61,11 +61,13 @@ export class TareaService {
     }
 
     const updateData: any = {};
-    if (updateTareaDto.nombreTarea) updateData.nombreTarea = updateTareaDto.nombreTarea;
-    if (updateTareaDto.descripcion) updateData.descripcion = updateTareaDto.descripcion;
-    if (updateTareaDto.fechaLimite) updateData.fechaLimite = new Date(updateTareaDto.fechaLimite);
-    if (updateTareaDto.estado) updateData.estado = updateTareaDto.estado;
-    if (updateTareaDto.profesorId) updateData.userId = updateTareaDto.profesorId;
+    if (updateTareaDto.nombreTarea)    updateData.nombreTarea    = updateTareaDto.nombreTarea;
+    if (updateTareaDto.descripcion)    updateData.descripcion    = updateTareaDto.descripcion;
+    if (updateTareaDto.fechaLimite)    updateData.fechaLimite    = new Date(updateTareaDto.fechaLimite);
+    if (updateTareaDto.estado)         updateData.estado         = updateTareaDto.estado;
+    if (updateTareaDto.profesorId)     updateData.userId         = updateTareaDto.profesorId;
+    if (updateTareaDto.comentario    !== undefined) updateData.comentario    = updateTareaDto.comentario;
+    if (updateTareaDto.revisorNombre !== undefined) updateData.revisorNombre = updateTareaDto.revisorNombre;
 
     return this.prisma.tarea.update({
       where: { tareaId: id },
@@ -98,9 +100,7 @@ export class TareaService {
       where: { tareaId },
     });
     if (!tarea) throw new NotFoundException('Tarea no encontrada');
-    if (!tarea.archivo) {
-      throw new NotFoundException('Esta tarea no tiene archivo adjunto');
-    }
+    if (!tarea.archivo) throw new NotFoundException('Esta tarea no tiene archivo adjunto');
 
     const filePath = path.join(this.uploadPath, tarea.archivo);
     if (!fs.existsSync(filePath)) {
@@ -110,26 +110,13 @@ export class TareaService {
     return { path: filePath, filename: tarea.archivo };
   }
 
-  // ─────────────────────────────────────────────
-  // 🆕 GET MIS TAREAS según rol del usuario
-  // ─────────────────────────────────────────────
-  /**
-   * PPA     → Ve todas las tareas de los profesores asignados
-   *            a los colectivos donde él mismo está asignado.
-   * PROFESOR → Ve únicamente las tareas que le fueron asignadas a él.
-   * Otros roles (ADMIN, JEFE, DECANO) → ForbiddenException.
-   *            Ellos usan findAll() desde su propio panel.
-   */
   async getMisTareas(userId: string) {
-    // 1. Obtener el usuario con su rol
     const usuario = await this.prisma.user.findUnique({
       where: { userId },
     });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    // 2. Lógica según rol
     if (usuario.rol === 'PROFESOR') {
-      // Solo sus tareas directas
       return this.prisma.tarea.findMany({
         where: { userId },
         include: { profesor: true },
@@ -138,42 +125,29 @@ export class TareaService {
     }
 
     if (usuario.rol === 'PPA') {
-      // a) Encontrar los colectivos donde está asignado el PPA
       const colectivosDelPpa = await this.prisma.colectivoProfesor.findMany({
         where: { userId },
         select: { colectivoId: true },
       });
 
-      if (colectivosDelPpa.length === 0) {
-        return [];
-      }
+      if (colectivosDelPpa.length === 0) return [];
 
       const colectivoIds = colectivosDelPpa.map(c => c.colectivoId);
 
-      // b) Encontrar todos los profesores en esos colectivos
       const profesoresEnColectivos = await this.prisma.colectivoProfesor.findMany({
-        where: {
-          colectivoId: { in: colectivoIds },
-        },
+        where: { colectivoId: { in: colectivoIds } },
         select: { userId: true },
       });
 
-      const profesorIds = [
-        // IDs únicos para no duplicar tareas si un profesor está en varios colectivos
-        ...new Set(profesoresEnColectivos.map(p => p.userId)),
-      ];
+      const profesorIds = [...new Set(profesoresEnColectivos.map(p => p.userId))];
 
-      // c) Retornar todas las tareas de esos profesores
       return this.prisma.tarea.findMany({
-        where: {
-          userId: { in: profesorIds },
-        },
+        where: { userId: { in: profesorIds } },
         include: { profesor: true },
         orderBy: { createdAt: 'desc' },
       });
     }
 
-    // Cualquier otro rol no tiene acceso por este endpoint
     throw new ForbiddenException(
       'Tu rol no tiene acceso a este endpoint. Usa /tarea para ver todas las tareas.',
     );

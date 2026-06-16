@@ -12,6 +12,9 @@ export interface Tarea {
   estado: EstadoTarea;
   userId: string;
   archivo: string | null;
+  comentario?: string | null;
+  revisorNombre?: string | null;
+  updatedAt: string;
   profesor: {
     userId: string;
     userName: string;
@@ -33,6 +36,7 @@ export interface UpdateTareaRequest {
   fechaLimite?: string;
   estado?: EstadoTarea;
   profesorId?: string;
+  comentario?: string;
 }
 
 @Injectable({
@@ -50,35 +54,23 @@ export class TareaService {
     });
   }
 
-  // Subir archivo
   uploadArchivo(tareaId: string, file: File): Observable<Tarea> {
     const formData = new FormData();
     formData.append('archivo', file);
-
     const token = localStorage.getItem('token');
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
     return this.http.post<Tarea>(
-      `${this.apiUrl}/tarea/${tareaId}/upload`,
-      formData,
-      { headers }
+      `${this.apiUrl}/tarea/${tareaId}/upload`, formData, { headers }
     );
   }
 
-  // Descargar archivo
   downloadArchivo(tareaId: string): Observable<Blob> {
     return this.http.get(
       `${this.apiUrl}/tarea/${tareaId}/download`,
-      {
-        headers: this.getHeaders(),
-        responseType: 'blob'
-      }
+      { headers: this.getHeaders(), responseType: 'blob' }
     );
   }
 
-  // Cambiar estado
   updateEstado(id: string, estado: EstadoTarea): Observable<Tarea> {
     return this.http.patch<Tarea>(
       `${this.apiUrl}/tarea/${id}`,
@@ -87,49 +79,51 @@ export class TareaService {
     );
   }
 
-  // Todas las tareas (ADMIN / JEFE / DECANO)
-  getAllTareas(): Observable<Tarea[]> {
-    return this.http.get<Tarea[]>(
-      `${this.apiUrl}/tarea`,
+  updateEstadoConComentario(
+    id: string,
+    estado: EstadoTarea,
+    comentario: string
+  ): Observable<Tarea> {
+    return this.http.patch<Tarea>(
+      `${this.apiUrl}/tarea/${id}`,
+      { estado, comentario },
       { headers: this.getHeaders() }
     );
   }
 
-  // 🆕 Mis tareas según rol (PROFESOR ve las suyas, PPA ve las de su colectivo)
+  getAllTareas(): Observable<Tarea[]> {
+    return this.http.get<Tarea[]>(
+      `${this.apiUrl}/tarea`, { headers: this.getHeaders() }
+    );
+  }
+
   getMisTareas(): Observable<Tarea[]> {
     return this.http.get<Tarea[]>(
-      `${this.apiUrl}/tarea/mis-tareas`,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/tarea/mis-tareas`, { headers: this.getHeaders() }
     );
   }
 
   getTareaById(id: string): Observable<Tarea> {
     return this.http.get<Tarea>(
-      `${this.apiUrl}/tarea/${id}`,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/tarea/${id}`, { headers: this.getHeaders() }
     );
   }
 
   createTarea(data: CreateTareaRequest): Observable<Tarea> {
     return this.http.post<Tarea>(
-      `${this.apiUrl}/tarea`,
-      data,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/tarea`, data, { headers: this.getHeaders() }
     );
   }
 
   updateTarea(id: string, data: UpdateTareaRequest): Observable<Tarea> {
     return this.http.patch<Tarea>(
-      `${this.apiUrl}/tarea/${id}`,
-      data,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/tarea/${id}`, data, { headers: this.getHeaders() }
     );
   }
 
   deleteTarea(id: string): Observable<void> {
     return this.http.delete<void>(
-      `${this.apiUrl}/tarea/${id}`,
-      { headers: this.getHeaders() }
+      `${this.apiUrl}/tarea/${id}`, { headers: this.getHeaders() }
     );
   }
 }

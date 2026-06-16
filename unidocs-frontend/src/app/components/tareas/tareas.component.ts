@@ -14,41 +14,42 @@ import { AuthService } from '../../services/auth.service';
 })
 export class TareasComponent implements OnInit {
   private tareaService = inject(TareaService);
-  private router = inject(Router);
-  private authService = inject(AuthService);
-  private cd = inject(ChangeDetectorRef);
+  private router       = inject(Router);
+  private authService  = inject(AuthService);
+  private cd           = inject(ChangeDetectorRef);
 
-  loading = false;
-  error = '';
-  sinTareasAsignadas = false;
+  loading             = false;
+  error               = '';
+  sinTareasAsignadas  = false;
 
-  // ── Datos crudos ──
   todasLasTareas = signal<Tarea[]>([]);
-
-  // ── Filtros ──
   estadoFiltro   = signal<string>('');
   profesorFiltro = signal<string>('');
 
-  // ── Estado del modal de subida ──
-  showUploadModal = false;
+  showUploadModal  = false;
   selectedTareaId: string | null = null;
   selectedFile: File | null = null;
-  isDragging = false;
-  uploadError = '';
-  uploading = false;
+  isDragging       = false;
+  uploadError      = '';
+  uploading        = false;
+
+  showCommentModal    = false;
+  commentTareaId: string | null = null;
+  commentAccion: 'COMPLETADA' | 'RECHAZADA' | null = null;
+  comentario          = '';
+  isSubmittingComment = false;
+  commentError        = '';
 
   loggedUser = computed(() => this.authService.getUser());
 
-  // Roles que ven TODAS las tareas
   private readonly rolesAdmin = new Set(['ADMIN', 'JEFE_DEPARTAMENTO', 'DECANO_VICEDECANO']);
 
-  // ── Computed ──
-  profesoresDisponibles = computed(() => {
-    return this.todasLasTareas()
+  profesoresDisponibles = computed(() =>
+    this.todasLasTareas()
       .map(t => `${t.profesor.userName} ${t.profesor.apellido}`.trim())
       .filter((v, i, a) => v && a.indexOf(v) === i)
-      .sort();
-  });
+      .sort()
+  );
 
   tareas = computed(() => {
     let res = this.todasLasTareas();
@@ -66,12 +67,11 @@ export class TareasComponent implements OnInit {
   }
 
   cargarTareas(): void {
-    this.loading = true;
-    this.error = '';
+    this.loading           = true;
+    this.error             = '';
     this.sinTareasAsignadas = false;
 
-    const rol = this.getCurrentRol();
-
+    const rol       = this.getCurrentRol();
     const peticion$ = this.rolesAdmin.has(rol)
       ? this.tareaService.getAllTareas()
       : this.tareaService.getMisTareas();
@@ -82,7 +82,7 @@ export class TareasComponent implements OnInit {
         this.loading = false;
         this.cd.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         if (err.status === 403 || err.status === 404) {
           this.todasLasTareas.set([]);
@@ -96,24 +96,18 @@ export class TareasComponent implements OnInit {
     });
   }
 
-  // ── Filtros ──────────────────────────────────────────────────
-
   filterByEstado(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.estadoFiltro.set(target.value);
+    this.estadoFiltro.set((event.target as HTMLSelectElement).value);
   }
 
   filterByProfesor(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.profesorFiltro.set(target.value);
+    this.profesorFiltro.set((event.target as HTMLSelectElement).value);
   }
 
   resetFiltros(): void {
     this.estadoFiltro.set('');
     this.profesorFiltro.set('');
   }
-
-  // ── Permisos por rol ──────────────────────────────────────────
 
   getCurrentRol(): string {
     return String(this.loggedUser()?.rol ?? '').toUpperCase().trim();
@@ -132,21 +126,21 @@ export class TareasComponent implements OnInit {
     return this.canReviewFiles();
   }
 
-  // ── Modal de subida ───────────────────────────────────────────
+  // ── Modal subida ──────────────────────────────────────────────
 
   openUploadModal(tareaId: string): void {
     this.selectedTareaId = tareaId;
-    this.selectedFile = null;
-    this.uploadError = '';
-    this.isDragging = false;
+    this.selectedFile    = null;
+    this.uploadError     = '';
+    this.isDragging      = false;
     this.showUploadModal = true;
   }
 
   closeUploadModal(): void {
     this.showUploadModal = false;
     this.selectedTareaId = null;
-    this.selectedFile = null;
-    this.uploadError = '';
+    this.selectedFile    = null;
+    this.uploadError     = '';
   }
 
   onDragOver(event: DragEvent): void {
@@ -166,16 +160,12 @@ export class TareasComponent implements OnInit {
     event.stopPropagation();
     this.isDragging = false;
     const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      this.handleFile(files[0]);
-    }
+    if (files && files.length > 0) this.handleFile(files[0]);
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files?.[0];
-    if (file) {
-      this.handleFile(file);
-    }
+    if (file) this.handleFile(file);
   }
 
   handleFile(file: File): void {
@@ -187,20 +177,17 @@ export class TareasComponent implements OnInit {
       this.selectedFile = null;
       return;
     }
-
     if (file.size > 20 * 1024 * 1024) {
       this.uploadError = 'El archivo excede los 20MB';
       this.selectedFile = null;
       return;
     }
-
-    this.uploadError = '';
+    this.uploadError  = '';
     this.selectedFile = file;
   }
 
   uploadFile(): void {
     if (!this.selectedFile || !this.selectedTareaId) return;
-
     this.uploading = true;
     this.tareaService.uploadArchivo(this.selectedTareaId, this.selectedFile).subscribe({
       next: () => {
@@ -208,10 +195,10 @@ export class TareasComponent implements OnInit {
         this.closeUploadModal();
         this.cargarTareas();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('❌ Error al subir:', err);
         this.uploadError = `Error ${err.status}: ${err.error?.message || 'No se pudo subir'}`;
-        this.uploading = false;
+        this.uploading   = false;
         this.cd.detectChanges();
       }
     });
@@ -223,31 +210,118 @@ export class TareasComponent implements OnInit {
     this.tareaService.downloadArchivo(tareaId).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
+        const a   = document.createElement('a');
+        a.href     = url;
         a.download = `tarea-${tareaId}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('❌ Error al descargar:', err);
         alert('No se pudo descargar el archivo');
       }
     });
   }
 
-  // ── Cambio de estado ──────────────────────────────────────────
+  // ── EN_REVISION directo ───────────────────────────────────────
 
-  cambiarEstado(tarea: Tarea, nuevoEstado: EstadoTarea): void {
-    this.tareaService.updateEstado(tarea.tareaId, nuevoEstado).subscribe({
+  marcarEnRevision(tareaId: string): void {
+    this.tareaService.updateEstado(tareaId, 'EN_REVISION').subscribe({
+      next: () => this.cargarTareas(),
+      error: (err: any) => {
+        console.error('❌ Error al marcar en revisión:', err);
+        alert(`No se pudo actualizar: ${err.error?.message || err.message}`);
+      }
+    });
+  }
+
+  // ── Modal comentarios ─────────────────────────────────────────
+
+  openCommentModal(tareaId: string, accion: 'COMPLETADA' | 'RECHAZADA'): void {
+    this.commentTareaId  = tareaId;
+    this.commentAccion   = accion;
+    this.comentario      = '';
+    this.commentError    = '';
+    this.showCommentModal = true;
+  }
+
+  closeCommentModal(): void {
+    this.showCommentModal = false;
+    this.commentTareaId  = null;
+    this.commentAccion   = null;
+    this.comentario      = '';
+    this.commentError    = '';
+  }
+
+  submitComment(): void {
+    if (!this.commentTareaId || !this.commentAccion) return;
+
+    if (!this.comentario.trim()) {
+      this.commentError = 'El comentario no puede estar vacío';
+      return;
+    }
+
+    this.isSubmittingComment = true;
+    this.commentError        = '';
+
+    this.tareaService.updateEstadoConComentario(
+      this.commentTareaId,
+      this.commentAccion,
+      this.comentario.trim()
+    ).subscribe({
       next: () => {
+        this.isSubmittingComment = false;
+        this.closeCommentModal();
+        this.cargarTareas();
+        this.cd.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('❌ Error al enviar comentario:', err);
+        this.commentError        = `Error: ${err.error?.message || 'No se pudo enviar el comentario'}`;
+        this.isSubmittingComment = false;
+        this.cd.detectChanges();
+      }
+    });
+  }
+
+  // ── Verificaciones ────────────────────────────────────────────
+
+  tieneArchivo(tarea: Tarea): boolean {
+    return !!tarea.archivo;
+  }
+
+  getAccionLabel(estado: EstadoTarea): string {
+    switch (estado) {
+      case 'COMPLETADA': return '✓ Aprobada';
+      case 'RECHAZADA':  return '✗ Rechazada';
+      default:           return estado;
+    }
+  }
+
+  getCommentModalTitle(): string {
+    if (this.commentAccion === 'COMPLETADA') return 'Aprobar Tarea';
+    if (this.commentAccion === 'RECHAZADA')  return 'Rechazar Tarea';
+    return 'Comentario';
+  }
+
+  // ── Eliminar ──────────────────────────────────────────────────
+
+  eliminarTarea(tarea: Tarea): void {
+    const confirmar = confirm(
+      `¿Estás seguro de que deseas eliminar la tarea "${tarea.nombreTarea}"?\n\nEsta acción no se puede deshacer.`
+    );
+    if (!confirmar) return;
+
+    this.tareaService.deleteTarea(tarea.tareaId).subscribe({
+      next: () => {
+        console.log(`✅ Tarea "${tarea.nombreTarea}" eliminada`);
         this.cargarTareas();
       },
-      error: (err) => {
-        console.error('❌ Error al cambiar estado:', err);
-        alert('No se pudo cambiar el estado');
+      error: (err: any) => {
+        console.error('❌ Error al eliminar:', err);
+        alert(`No se pudo eliminar la tarea: ${err.error?.message || err.message}`);
       }
     });
   }
@@ -264,7 +338,7 @@ export class TareasComponent implements OnInit {
     return `estado-${estado.toLowerCase()}`;
   }
 
-  public navigateToCrearTarea() {
+  navigateToCrearTarea(): void {
     this.router.navigate(['/crear-tareas']);
   }
 }

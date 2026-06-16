@@ -32,20 +32,6 @@ enum estadoTarea {
   RECHAZADA  // ← AGREGUÉ RECHAZADA (en tu código estaba CANCELADA)
 }
 
-enum catDoc {
-  ATD
-  Adiestrado
-  Instructor
-  Asistente
-  Auxiliar
-  Titular
-}
-
-enum catCient{
-  Dr. C
-  M. Sc
-}
-
 model User {
   userId    String   @id @default(uuid())
   userName  String   @unique
@@ -75,13 +61,12 @@ model Tarea {
   descripcion String
   fechaLimite DateTime
   estado      estadoTarea @default(PENDIENTE)
-  archivo     String?     // ← NUEVO: nombre del archivo subido
+  archivo     String?
+  comentario  String?     // ← solo esta línea
+  revisorNombre String? 
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  catDoc      String  
-  catCient    String
 
-  
   profesor User   @relation(fields: [userId], references: [userId])
   userId   String
 }

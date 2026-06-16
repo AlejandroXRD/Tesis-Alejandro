@@ -11,11 +11,7 @@
     <div class="header-deco" aria-hidden="true"></div>
   </header>
 
-  <button
-    class="btn btn--primary"
-    *ngIf="canCreateTarea()"
-    (click)="navigateToCrearTarea()"
-  >
+  <button class="btn btn--primary" *ngIf="canCreateTarea()" (click)="navigateToCrearTarea()">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
       <line x1="12" y1="5" x2="12" y2="19"/>
       <line x1="5" y1="12" x2="19" y2="12"/>
@@ -23,11 +19,10 @@
     Crear Tarea
   </button>
 
-  <!-- ── TOOLBAR DE FILTROS ── -->
+  <!-- TOOLBAR -->
   <div class="toolbar" *ngIf="!loading && todasLasTareas().length > 0">
     <div class="toolbar-group">
-
-      <select #selectEstado [(ngModel)]="estadoFiltro" (change)="filterByEstado($event)" class="year-select">
+      <select [(ngModel)]="estadoFiltro" (change)="filterByEstado($event)" class="year-select">
         <option value="">Todos los estados</option>
         <option value="PENDIENTE">Pendiente</option>
         <option value="EN_REVISION">En revisión</option>
@@ -35,23 +30,17 @@
         <option value="RECHAZADA">Rechazada</option>
       </select>
 
-      <select #selectProfesor [(ngModel)]="profesorFiltro" (change)="filterByProfesor($event)" class="year-select"
+      <select [(ngModel)]="profesorFiltro" (change)="filterByProfesor($event)" class="year-select"
               [disabled]="profesoresDisponibles().length === 0">
         <option value="">Todos los profesores</option>
-        <option *ngFor="let p of profesoresDisponibles()" [value]="p">
-          {{ p }}
-        </option>
+        <option *ngFor="let p of profesoresDisponibles()" [value]="p">{{ p }}</option>
       </select>
 
-      <button
-        type="button"
-        class="btn btn--ghost"
-        *ngIf="estadoFiltro() || profesorFiltro()"
-        (click)="resetFiltros()"
-      >
+      <button type="button" class="btn btn--ghost"
+              *ngIf="estadoFiltro() || profesorFiltro()"
+              (click)="resetFiltros()">
         Limpiar filtros
       </button>
-
     </div>
     <span class="count-badge" style="margin-left: auto;">
       {{ tareas().length }} resultado{{ tareas().length !== 1 ? 's' : '' }}
@@ -66,13 +55,9 @@
 
     <div class="panel-body">
 
-      <div *ngIf="loading" class="loading-state" role="status">
-        Cargando tareas...
-      </div>
+      <div *ngIf="loading" class="loading-state" role="status">Cargando tareas...</div>
 
-      <div *ngIf="!loading && error" class="error-state" role="alert">
-        {{ error }}
-      </div>
+      <div *ngIf="!loading && error" class="error-state" role="alert">{{ error }}</div>
 
       <div *ngIf="!loading && !error && (sinTareasAsignadas || todasLasTareas().length === 0)" class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -84,24 +69,20 @@
         <p>No tienes ninguna tarea asignada.</p>
       </div>
 
-      <!-- Sin resultados por filtro -->
       <div *ngIf="!loading && !error && todasLasTareas().length > 0 && tareas().length === 0" class="empty-state">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <p>No hay tareas que coincidan con los filtros aplicados.</p>
-        <button type="button" class="btn btn--ghost" (click)="resetFiltros()">
-          Limpiar filtros
-        </button>
+        <button type="button" class="btn btn--ghost" (click)="resetFiltros()">Limpiar filtros</button>
       </div>
 
       <div *ngIf="!loading && !error && tareas().length > 0" class="tareas-list">
         <article class="tarea-card" *ngFor="let t of tareas()">
+
           <div class="tarea-top">
             <h3 class="tarea-nombre">{{ t.nombreTarea }}</h3>
-            <span class="estado-badge" [ngClass]="getEstadoClass(t.estado)">
-              {{ t.estado }}
-            </span>
+            <span class="estado-badge" [ngClass]="getEstadoClass(t.estado)">{{ t.estado }}</span>
           </div>
 
           <p class="tarea-desc">{{ t.descripcion }}</p>
@@ -117,19 +98,58 @@
             </div>
             <div class="meta-row">
               <span class="meta-label">Profesor</span>
-              <span class="meta-value">
-                {{ t.profesor.userName }} {{ t.profesor.apellido }}
-              </span>
+              <span class="meta-value">{{ t.profesor.userName }} {{ t.profesor.apellido }}</span>
             </div>
           </div>
 
+          <!-- ── FEEDBACK DE REVISIÓN ── -->
+          <div *ngIf="t.comentario"
+               class="revision-feedback"
+               [ngClass]="'revision-feedback--' + t.estado.toLowerCase()">
+
+            <div class="revision-feedback__icon">
+              <svg *ngIf="t.estado === 'COMPLETADA'" width="18" height="18" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <svg *ngIf="t.estado === 'RECHAZADA'" width="18" height="18" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              <svg *ngIf="t.estado !== 'COMPLETADA' && t.estado !== 'RECHAZADA'"
+                   width="18" height="18" viewBox="0 0 24 24"
+                   fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+
+            <div class="revision-feedback__body">
+              <div class="revision-feedback__header">
+                <div class="revision-feedback__meta">
+                  <span class="revision-feedback__title">
+                    {{ t.estado === 'COMPLETADA' ? 'Tarea aprobada' : t.estado === 'RECHAZADA' ? 'Tarea rechazada' : 'Comentario' }}
+                  </span>
+                  <span *ngIf="t.revisorNombre" class="revision-feedback__revisor">
+                    por <strong>{{ t.revisorNombre }}</strong>
+                  </span>
+                  <span class="revision-feedback__fecha">· {{ formatFecha(t.updatedAt) }}</span>
+                </div>
+                <span class="revision-feedback__badge estado-badge" [ngClass]="getEstadoClass(t.estado)">
+                  {{ getAccionLabel(t.estado) }}
+                </span>
+              </div>
+              <p class="revision-feedback__text">{{ t.comentario }}</p>
+            </div>
+          </div>
+
+          <!-- ACCIONES -->
           <div class="tarea-actions">
-            <button
-              *ngIf="canUploadFiles()"
-              class="btn btn--upload"
-              (click)="openUploadModal(t.tareaId)"
-              [disabled]="t.estado === 'COMPLETADA' || t.estado === 'RECHAZADA'"
-            >
+
+            <button *ngIf="canUploadFiles()"
+                    class="btn btn--upload"
+                    (click)="openUploadModal(t.tareaId)"
+                    [disabled]="t.estado === 'COMPLETADA' || t.estado === 'RECHAZADA'">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
@@ -138,7 +158,15 @@
               {{ t.archivo ? 'Reemplazar Archivo' : 'Subir Archivos' }}
             </button>
 
-            <ng-container *ngIf="canReviewFiles() && t.archivo">
+            <div *ngIf="canReviewFiles() && !tieneArchivo(t) && t.estado === 'PENDIENTE'" class="waiting-document">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              Esperando que {{ t.profesor.userName }} suba el documento...
+            </div>
+
+            <ng-container *ngIf="canReviewFiles() && tieneArchivo(t)">
               <button class="btn btn--download" (click)="downloadFile(t.tareaId)">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -148,74 +176,69 @@
                 Descargar
               </button>
 
-              <button
-                class="btn btn--success"
-                (click)="cambiarEstado(t, 'COMPLETADA')"
-                [disabled]="t.estado === 'COMPLETADA'"
-              >
+              <button class="btn btn--warning"
+                      (click)="marcarEnRevision(t.tareaId)"
+                      [disabled]="t.estado === 'EN_REVISION' || t.estado === 'COMPLETADA' || t.estado === 'RECHAZADA'">
+                ⏱ En Revisión
+              </button>
+
+              <button class="btn btn--success"
+                      (click)="openCommentModal(t.tareaId, 'COMPLETADA')"
+                      [disabled]="t.estado === 'COMPLETADA'">
                 ✓ Aprobar
               </button>
 
-              <button
-                class="btn btn--danger"
-                (click)="cambiarEstado(t, 'RECHAZADA')"
-                [disabled]="t.estado === 'RECHAZADA'"
-              >
+              <button class="btn btn--danger"
+                      (click)="openCommentModal(t.tareaId, 'RECHAZADA')"
+                      [disabled]="t.estado === 'RECHAZADA'">
                 ✗ Rechazar
               </button>
-
-              <button
-                *ngIf="t.estado === 'PENDIENTE'"
-                class="btn btn--warning"
-                (click)="cambiarEstado(t, 'EN_REVISION')"
-              >
-                ⏱ En Revisión
-              </button>
             </ng-container>
+
+            <button *ngIf="canReviewFiles()"
+                    class="btn btn--delete"
+                    (click)="eliminarTarea(t)"
+                    title="Eliminar tarea permanentemente">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14H6L5 6"/>
+                <path d="M10 11v6"/>
+                <path d="M14 11v6"/>
+                <path d="M9 6V4h6v2"/>
+              </svg>
+              Eliminar
+            </button>
           </div>
+
         </article>
       </div>
-
     </div>
   </section>
 </section>
 
-<!-- MODAL DE SUBIDA DE ARCHIVOS -->
+<!-- MODAL SUBIDA -->
 <div class="modal-overlay" *ngIf="showUploadModal" (click)="closeUploadModal()">
   <div class="modal-content" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>Subir Archivo de Respuesta</h3>
       <button class="modal-close" (click)="closeUploadModal()">×</button>
     </div>
-
     <div class="modal-body">
-      <div
-        class="drop-zone"
-        [class.dragging]="isDragging"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
-        (click)="fileInput.click()"
-      >
+      <div class="drop-zone"
+           [class.dragging]="isDragging"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           (click)="fileInput.click()">
         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
           <polyline points="17 8 12 3 7 8"/>
           <line x1="12" y1="3" x2="12" y2="15"/>
         </svg>
-        <p class="drop-zone-text">
-          <strong>Arrastra tu archivo aquí</strong><br>
-          o haz click para seleccionar
-        </p>
+        <p class="drop-zone-text"><strong>Arrastra tu archivo aquí</strong><br>o haz click para seleccionar</p>
         <p class="drop-zone-formats">Formatos: .pdf, .docx, .xlsx, .xls (máx 20MB)</p>
-        <input
-          #fileInput
-          type="file"
-          accept=".pdf,.docx,.xlsx,.xls"
-          (change)="onFileSelected($event)"
-          style="display: none;"
-        />
+        <input #fileInput type="file" accept=".pdf,.docx,.xlsx,.xls" (change)="onFileSelected($event)" style="display: none;"/>
       </div>
-
       <div *ngIf="selectedFile" class="file-preview">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -224,20 +247,48 @@
         <span>{{ selectedFile.name }}</span>
         <span class="file-size">({{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB)</span>
       </div>
-
-      <div *ngIf="uploadError" class="upload-error">
-        ⚠️ {{ uploadError }}
-      </div>
+      <div *ngIf="uploadError" class="upload-error">⚠️ {{ uploadError }}</div>
     </div>
-
     <div class="modal-footer">
       <button class="btn btn--secondary" (click)="closeUploadModal()">Cancelar</button>
-      <button
-        class="btn btn--primary"
-        (click)="uploadFile()"
-        [disabled]="!selectedFile || uploading"
-      >
+      <button class="btn btn--primary" (click)="uploadFile()" [disabled]="!selectedFile || uploading">
         {{ uploading ? 'Subiendo...' : 'Subir Archivo' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMENTARIO -->
+<div class="modal-overlay" *ngIf="showCommentModal" (click)="closeCommentModal()">
+  <div class="modal-content modal-content--comment" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ getCommentModalTitle() }}</h3>
+      <button class="modal-close" (click)="closeCommentModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="comment-instructions">
+        Añade un comentario que el profesor podrá ver cuando revise su tarea.
+        Este mensaje le ayudará a entender tu decisión.
+      </p>
+      <div class="comment-input-group">
+        <label for="commentTextarea" class="comment-label">Comentario</label>
+        <textarea id="commentTextarea"
+                  [(ngModel)]="comentario"
+                  placeholder="Escribe tu comentario aquí..."
+                  class="comment-textarea"
+                  rows="5"
+                  maxlength="500"></textarea>
+        <span class="char-count">{{ comentario.length }} / 500 caracteres</span>
+      </div>
+      <div *ngIf="commentError" class="comment-error">⚠️ {{ commentError }}</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn--secondary" (click)="closeCommentModal()">Cancelar</button>
+      <button class="btn"
+              [ngClass]="commentAccion === 'COMPLETADA' ? 'btn--success' : 'btn--danger'"
+              (click)="submitComment()"
+              [disabled]="!comentario.trim() || isSubmittingComment">
+        {{ isSubmittingComment ? 'Enviando...' : (commentAccion === 'COMPLETADA' ? '✓ Aprobar' : '✗ Rechazar') }}
       </button>
     </div>
   </div>
