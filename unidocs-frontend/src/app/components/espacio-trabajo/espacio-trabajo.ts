@@ -18,10 +18,8 @@ export class EspacioTrabajoComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  // ── Estado del usuario ──
   private userRole: string = '';
 
-  // ── Modal ──
   showModal       = false;
   currentCategory: Category | null = null;
   currentFiles:    WorkspaceFile[] = [];
@@ -29,7 +27,6 @@ export class EspacioTrabajoComponent implements OnInit {
   uploadingFiles   = false;
   errorMsg         = '';
 
-  // ── Contadores por categoría ──
   filesCounts: Record<Category, number> = {
     graficos:      0,
     modelos:       0,
@@ -50,22 +47,25 @@ export class EspacioTrabajoComponent implements OnInit {
     this.refreshAllCounts();
   }
 
-  // ── Actualiza contadores de las 3 categorías ────────────────
   private refreshAllCounts(): void {
     (['graficos', 'modelos', 'planificacion'] as Category[]).forEach(cat => {
       this.uploads.listFiles(cat).subscribe({
-        next:  files => (this.filesCounts[cat] = files.length),
-        error: ()    => (this.filesCounts[cat] = 0),
+        next: files => {
+          this.filesCounts[cat] = files.length;
+          this.cdr.detectChanges(); // ✅ FIX: forzar detección de cambios
+        },
+        error: () => {
+          this.filesCounts[cat] = 0;
+          this.cdr.detectChanges(); // ✅ FIX: forzar detección de cambios
+        },
       });
     });
   }
 
-  // ── Navegación ──────────────────────────────────────────────
   goHome(): void {
     this.router.navigate(['/']);
   }
 
-  // ── Modal ───────────────────────────────────────────────────
   openDocuments(category: Category): void {
     this.currentCategory = category;
     this.currentFiles    = [];
@@ -107,12 +107,10 @@ export class EspacioTrabajoComponent implements OnInit {
     return this.currentCategory ? titles[this.currentCategory] : '';
   }
 
-  // ── Permisos ────────────────────────────────────────────────
   canUploadFiles():             boolean { return ALLOWED_ROLES_UPLOAD.has(this.userRole); }
   canDeleteFiles():             boolean { return ALLOWED_ROLES_UPLOAD.has(this.userRole); }
   canDownloadFile(_f: WorkspaceFile): boolean { return true; }
 
-  // ── Subida ──────────────────────────────────────────────────
   triggerUpload(): void {
     this.fileInput?.nativeElement.click();
   }
@@ -144,7 +142,6 @@ export class EspacioTrabajoComponent implements OnInit {
     });
   }
 
-  // ── Descarga ────────────────────────────────────────────────
   downloadFile(file: WorkspaceFile): void {
     if (!this.currentCategory) return;
 
@@ -164,7 +161,6 @@ export class EspacioTrabajoComponent implements OnInit {
     });
   }
 
-  // ── Eliminar ────────────────────────────────────────────────
   deleteFile(filename: string): void {
     if (!this.canDeleteFiles() || !this.currentCategory) return;
     if (!confirm(`¿Estás seguro de que deseas eliminar "${filename}"?`)) return;
@@ -182,89 +178,51 @@ export class EspacioTrabajoComponent implements OnInit {
     });
   }
 
-  // ── Utilidades para iconos ─────────────────────────────────
-  // Determina si es documento Word (.doc o .docx)
   isWordFile(fileName: string): boolean {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
     return ext === 'doc' || ext === 'docx';
   }
 
-  // Determina si es hoja de cálculo Excel (.xls o .xlsx o .csv)
   isExcelFile(fileName: string): boolean {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
     return ext === 'xls' || ext === 'xlsx' || ext === 'csv';
   }
 
-  // Determina si es una imagen ()
   isPNGFile(fileName: string): boolean {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
     return ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'gif' || ext === 'webp';
   }
 
-  // Determina si es pdf (.pdf)
   isPDFFile(fileName: string): boolean {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
     return ext === 'pdf';
   }
 
-  // Determina si es Power Point (pptx)
   isPPFile(fileName: string): boolean {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
     return ext === 'ppt' || ext === 'pptx';
   }
 
-  // Ruta del icono SVG para Word
-  getWordIconPath(): string {
-    return '/document.svg';   // ubicado en public/document.svg
-  }
+  getWordIconPath():  string { return '/document.svg'; }
+  getExcelIconPath(): string { return '/excel.svg'; }
+  getPNGIconPath():   string { return '/png.svg'; }
+  getPDFIconPath():   string { return '/pdf.svg'; }
+  getPPIconPath():    string { return '/pptx.svg'; }
+  getZIPconPath():    string { return '/zip.svg'; }
+  getTxtconPath():    string { return '/txt.svg'; }
 
-  // Ruta del icono SVG para Excel
-  getExcelIconPath(): string {
-    return '/excel.svg';      // ubicado en public/excel.svg
-  }
-
-  // Ruta del icono SVG para PNG
-  getPNGIconPath(): string {
-    return '/png.svg';      // ubicado en public/png.svg
-  }
-  
-  // Ruta del icono SVG para PDF
-  getPDFIconPath(): string {
-    return '/pdf.svg';      // ubicado en public/pdf.svg
-  }
-
-  // Ruta del icono SVG para PPTX
-  getPPIconPath(): string {
-    return '/pptx.svg';      // ubicado en public/pptx.svg
-  }
-
-  // Ruta del icono SVG para ZIP y RAR
-  getZIPconPath(): string {
-    return '/zip.svg';      // ubicado en public/zip.svg
-  }
-
-  // Ruta del icono SVG para Txt
-  getTxtconPath(): string {
-    return '/txt.svg';      // ubicado en public/txt.svg
-  }
-
-  
-  // Icono emoji para el resto de extensiones
   getEmojiIcon(fileName: string): string {
     const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
-    const icons: Record<string, string> = {
-    };
+    const icons: Record<string, string> = {};
     return icons[ext] ?? '📁';
   }
 
-  // Método legacy (si se usa en algún otro lugar, lo dejamos pero no lo usaremos en la plantilla)
   getFileIcon(fileName: string): string {
-    if (this.isWordFile(fileName)) return '📝';
+    if (this.isWordFile(fileName))  return '📝';
     if (this.isExcelFile(fileName)) return '📊';
     return this.getEmojiIcon(fileName);
   }
 
-  // ── Formateo ────────────────────────────────────────────────
   formatDate(isoString: string): string {
     if (!isoString) return '';
     return new Date(isoString).toLocaleDateString('es-ES', {
