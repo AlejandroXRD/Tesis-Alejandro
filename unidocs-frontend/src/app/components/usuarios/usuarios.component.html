@@ -97,12 +97,28 @@
 
     <div class="panel-body">
       <div class="usuarios-list">
-        <article class="usuario-card" *ngFor="let usuario of usuarios()">
+        <article 
+          class="usuario-card" 
+          *ngFor="let usuario of usuarios()"
+          [class.usuario-card--protected]="isAdminUser(usuario)"
+        >
 
-          <!-- Top: Nombre e ID -->
+          <!-- Top: Nombre e ID + Badge de Admin Protegido -->
           <div class="usuario-top">
             <div class="usuario-info">
-              <h3 class="usuario-nombre">{{ usuario.userName }}</h3>
+              <div class="usuario-nombre-wrapper">
+                <h3 class="usuario-nombre">{{ usuario.userName }}</h3>
+                <span 
+                  *ngIf="isAdminUser(usuario)" 
+                  class="admin-badge" 
+                  title="Usuario administrador protegido"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                  </svg>
+                  Protegido
+                </span>
+              </div>
               <p class="usuario-sub">{{ usuario.apellido }}</p>
             </div>
             <span class="usuario-id-badge" title="ID del usuario">{{ usuario.userId | slice:0:8 }}...</span>
@@ -116,8 +132,9 @@
               id="rol-{{ usuario.userId }}"
               [(ngModel)]="usuario.rol"
               class="role-select"
-              [disabled]="savingRoleForUserId() === usuario.userId"
+              [disabled]="savingRoleForUserId() === usuario.userId || isAdminUser(usuario)"
               (change)="guardarRol(usuario)"
+              [title]="isAdminUser(usuario) ? 'El rol del usuario ADMIN no puede ser modificado' : 'Cambiar rol del usuario'"
               aria-label="Cambiar rol del usuario"
             >
               <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
@@ -129,6 +146,15 @@
               aria-live="polite"
             >
               Guardando...
+            </span>
+            <span
+              *ngIf="isAdminUser(usuario)"
+              class="protected-hint"
+              title="El usuario ADMIN está protegido"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+              </svg>
             </span>
           </div>
 
@@ -146,7 +172,8 @@
               type="button"
               class="btn btn--secondary"
               (click)="abrirModal(usuario)"
-              title="Editar este usuario"
+              [disabled]="isAdminUser(usuario)"
+              [title]="isAdminUser(usuario) ? 'No se puede editar el usuario ADMIN' : 'Editar este usuario'"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -158,9 +185,9 @@
             <button
               type="button"
               class="btn btn--danger"
-              [disabled]="deletingUserId() === usuario.userId"
+              [disabled]="deletingUserId() === usuario.userId || isAdminUser(usuario)"
               (click)="eliminarUsuario(usuario)"
-              title="Eliminar este usuario"
+              [title]="isAdminUser(usuario) ? 'No se puede eliminar el usuario ADMIN' : 'Eliminar este usuario'"
             >
               <svg *ngIf="deletingUserId() !== usuario.userId" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="3 6 5 6 21 6"></polyline>

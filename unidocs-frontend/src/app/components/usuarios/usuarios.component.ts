@@ -42,6 +42,11 @@ export class UsuariosComponent implements OnInit {
 
   loggedUser = computed(() => this.authService.getUser());
 
+  // Método para verificar si un usuario es ADMIN
+  isAdminUser(user: User | null): boolean {
+    return user?.rol === 'ADMIN' || (user as any)?.rol === 'ADMIN';
+  }
+
   readonly roles: Rol[] = ['ADMIN', 'DECANO_VICEDECANO', 'JEFE_DEPARTAMENTO', 'PPA', 'PROFESOR', 'NUEVO_USUARIO'];
 
   ngOnInit(): void {
@@ -101,7 +106,11 @@ export class UsuariosComponent implements OnInit {
   }
 
   guardarRol(user: User): void {
-    if (!user?.userId) return;
+    // ✋ Protección: No permitir cambiar el rol a ADMIN
+    if (!user?.userId || this.isAdminUser(user)) {
+      this.agregarToast('No se puede cambiar el rol del usuario ADMIN.', 'error');
+      return;
+    }
 
     const nuevoRol = user.rol as Rol;
     this.savingRoleForUserId.set(user.userId);
@@ -128,7 +137,11 @@ export class UsuariosComponent implements OnInit {
   }
 
   eliminarUsuario(user: User): void {
-    if (!user?.userId) return;
+    // ✋ Protección: No permitir eliminar al usuario ADMIN
+    if (!user?.userId || this.isAdminUser(user)) {
+      this.agregarToast('No se puede eliminar al usuario ADMIN.', 'error');
+      return;
+    }
 
     if (!confirm(`¿Estás seguro de que deseas eliminar a ${user.userName}? Esta acción no se puede deshacer.`)) {
       return;
@@ -160,6 +173,12 @@ export class UsuariosComponent implements OnInit {
   // ── Modal de edición ──────────────────────────────────────────
 
   abrirModal(user: User): void {
+    // ✋ Protección: No permitir editar al usuario ADMIN
+    if (this.isAdminUser(user)) {
+      this.agregarToast('No se puede editar al usuario ADMIN.', 'error');
+      return;
+    }
+
     this.editingUser.set({ ...user });
     this.editForm.set({ userName: user.userName, apellido: user.apellido });
   }

@@ -466,6 +466,17 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
+/* ✋ Estilos para usuario ADMIN protegido */
+.usuario-card--protected {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.04) 0%, rgba(30, 64, 175, 0.02) 100%);
+}
+
+.usuario-card--protected:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.06) 0%, rgba(30, 64, 175, 0.03) 100%);
+}
+
 .usuario-top {
   display: flex;
   align-items: flex-start;
@@ -481,12 +492,40 @@
   min-width: 0;
 }
 
+.usuario-nombre-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .usuario-nombre {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 750;
   color: var(--text-primary);
   word-break: break-word;
+}
+
+/* ✋ Badge de protección ADMIN */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(30, 64, 175, 0.1));
+  color: rgb(59, 130, 246);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+}
+
+.admin-badge svg {
+  flex-shrink: 0;
 }
 
 .usuario-sub {
@@ -568,6 +607,25 @@
   font-size: 0.85rem;
   font-weight: 650;
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ✋ Hint de protección para ADMIN */
+.protected-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: rgb(59, 130, 246);
+  font-size: 0.85rem;
+  font-weight: 650;
+  opacity: 0.7;
+  title: 'Protegido';
+}
+
+.protected-hint svg {
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes pulse {
