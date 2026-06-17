@@ -108,7 +108,7 @@ export class UsuariosComponent implements OnInit {
   guardarRol(user: User): void {
     // ✋ Protección: No permitir cambiar el rol a ADMIN
     if (!user?.userId || this.isAdminUser(user)) {
-      this.agregarToast('No se puede cambiar el rol del usuario ADMIN.', 'error');
+      this.agregarToast('No se puede cambiar el rol del usuario. Solo puede existir un solo usuario ADMIN.', 'error');
       return;
     }
 
